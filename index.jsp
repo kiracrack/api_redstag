@@ -33,7 +33,7 @@ String hostName=request.getServerName();
                     <%= System.getProperty("java.version") %> <%= System.getProperty("java.vendor") %><%= vmName %>
                 </td>
             </tr>
-            <tr>
+            <tr>s
                 <td class="c1">Appserver:</td>
                 <td class="c2">
                     <%= application.getServerInfo() %>

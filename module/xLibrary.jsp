@@ -249,6 +249,7 @@
         }
         rst_db.close();
         
+        
         if(debit > 0){
             ExecuteLedger("update tblsubscriber set creditbal=ROUND(creditbal-"+debit+",2) where accountid='"+accountid+"' ");
         }
@@ -262,6 +263,7 @@
         }else{
             newbal = (currentbal + credit) - debit;
         }
+        ExecuteLedger("update tblsubscriber set ledgerbal=ROUND("+newbal+",2) where accountid='"+accountid+"' ");
         ExecuteLedger("insert into tblcreditledger set accountid='"+accountid+"',sessionid='"+sessionid+"',appreference='"+appreference+"',transactionno='"+transactionno+"', description='"+rchar(description)+"',prevbal=ROUND("+currentbal+",2),debit=ROUND("+debit+",2),credit=ROUND("+credit+",2),currentbal=ROUND("+newbal+",2),datetrn=current_timestamp,trnby='"+trnby+"'");
 	}catch(Exception e){
 		logError("LogLedger",e.toString());

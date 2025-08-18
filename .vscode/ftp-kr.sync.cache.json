@@ -1,0 +1,40 @@
+{
+  "ftp://redmaster.live:21@api@redmaster.live": {
+    ".ftpquota": {
+      "type": "-",
+      "size": 14,
+      "lmtime": 0,
+      "modified": false
+    },
+    "META-INF": {},
+    "WEB-INF": {},
+    "api": {},
+    "api.zip": {
+      "type": "-",
+      "size": 27840880,
+      "lmtime": 0,
+      "modified": false
+    },
+    "app": {},
+    "callback": {},
+    "controller": {},
+    "dashboard": {},
+    "images": {},
+    "index.jsp": {
+      "type": "-",
+      "size": 4964,
+      "lmtime": 0,
+      "modified": false
+    },
+    "module": {},
+    "player": {},
+    "report": {},
+    "status.jsp": {
+      "type": "-",
+      "size": 4964,
+      "lmtime": 0,
+      "modified": false
+    }
+  },
+  "$version": 1
+}

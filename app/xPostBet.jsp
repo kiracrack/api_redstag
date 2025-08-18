@@ -109,6 +109,27 @@ try{
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
+        
+        }else if(CountQry("tblsubscriber", "accountid='"+userid+"' and (creditbal=0 or creditbal < 0)") > 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Your score balance is insufficient!");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }else if(CountQry("tblsubscriber", "accountid='"+userid+"' and ledgerbal>="+bet_amount+"") == 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Your score balance is insufficient!");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }else if(CountQry("tblsubscriber", "accountid='"+userid+"' and (ledgerbal=0 or ledgerbal < 0)") > 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Your score balance is insufficient!");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
 
         }else if(op.minbet > 0 && bet_amount < op.minbet){
             mainObj.put("status", "ERROR");
