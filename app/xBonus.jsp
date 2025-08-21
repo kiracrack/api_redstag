@@ -166,6 +166,10 @@ try{
             }
 
             double amount = info.totaldeposit * 0.08;
+            if(amount > 1688){
+                amount = 1688;
+            }
+            
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='8% daily rebate bonus', bonuscode='rebate', bonusdate='" +info.bonus_date+ "', amount="+amount+", dateclaimed=current_timestamp");
             ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=1, bonus_amount="+amount+" where accountid='"+userid+"'");
 

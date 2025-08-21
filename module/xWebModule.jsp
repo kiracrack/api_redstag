@@ -296,7 +296,7 @@
  %>
 
 <%!public JSONObject api_rebate_promo(JSONObject mainObj, String userid) {
-    mainObj = DBtoJson(mainObj, "rebate_promo", "select rebate_enabled, if(bonus_date=current_date || bonus_date = (current_date - INTERVAL 1 DAY), totaldeposit, 0) as totaldeposit, (totaldeposit * 0.08) as bonus,  bonus_date, if(totaldeposit >= 150 and (rebate_enabled=0 or creditbal < 1) and bonus_date = (current_date - INTERVAL 1 DAY), 'true', 'false') as rebate_available from tblsubscriber as a where accountid='"+userid+"'");
+    mainObj = DBtoJson(mainObj, "rebate_promo", "select rebate_enabled, if(bonus_date=current_date || bonus_date = (current_date - INTERVAL 1 DAY), totaldeposit, 0) as totaldeposit, if((totaldeposit * 0.08) > 1688, 1688, (totaldeposit * 0.08) ) as bonus,  bonus_date, if(totaldeposit >= 150 and (rebate_enabled=0 or creditbal < 1) and bonus_date = (current_date - INTERVAL 1 DAY), 'true', 'false') as rebate_available from tblsubscriber as a where accountid='"+userid+"'");
     return mainObj;
  }
  %>
