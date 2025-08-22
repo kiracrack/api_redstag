@@ -590,7 +590,7 @@ try{
  %>
 
 <%!public JSONObject online_deposit_withdraw(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
-       mainObj = DBtoJson(mainObj, "report", "select *, accountid as 'Account ID', fullname as 'Fullname' from (select accountid, "
+      mainObj = DBtoJson(mainObj, "report", "select *, accountid as 'Account ID', fullname as 'Fullname' from (select accountid, "
                                 + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
                                 + " refno as 'Transaction No', "
                                 + " accountno as 'Account No', "
@@ -615,7 +615,7 @@ try{
                                 + " date_format(datetrn,'%r') as 'Time',  "
                                 + " datetrn,  "
                                 + " operatorid " 
-                                + " from tbldeposits as b where operatoraccount=1 and cancelled=0) as x "
+                                + " from tbldeposits as b where operatoraccount=1 and confirmed=1 and cancelled=0) as x "
                                 + " where operatorid='" + operatorid + "' "
                                 + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
                                 + " order by datetrn asc");
