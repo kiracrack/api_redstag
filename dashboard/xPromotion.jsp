@@ -109,6 +109,16 @@ try{
         mainObj.put("message","Promo successfully deleted!");
         mainObj = load_promotion(mainObj, operatorid);
         out.print(mainObj);*/
+
+     }else if(x.equals("set_popup_settings")){
+        boolean popup_enabled = Boolean.parseBoolean(request.getParameter("popup_enabled"));
+        String popup_banner = request.getParameter("popup_banner");
+        
+        ExecuteQuery("UPDATE tblgeneralsettings set popup_enabled="+popup_enabled+", popup_banner='"+popup_banner+"'");
+
+        mainObj.put("status", "OK");
+        mainObj.put("message", "Popup banner successfully save!");
+        out.print(mainObj);
     
     }else if(x.equals("push_notification")){
         String promocode = request.getParameter("promocode");

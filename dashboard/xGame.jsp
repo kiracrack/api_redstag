@@ -38,7 +38,16 @@ try{
         return;
     }
     
-    if(x.equals("load_game_list")){
+    if(x.equals("update_game_list")){
+        String provider = request.getParameter("provider");
+
+        if(provider.equals("funky")) mainObj = UpdateGameFunky(mainObj, provider);
+        if(provider.equals("infinity")) mainObj = UpdateGameInfinity(mainObj, provider);
+        if(provider.equals("kissH5")) mainObj = UpdateGame918KissH5(mainObj, provider);
+
+        out.print(mainObj);
+
+    }else if(x.equals("load_game_list")){
         String provider = request.getParameter("provider");
 
         mainObj.put("status", "OK");
@@ -60,22 +69,13 @@ try{
         String imgname = request.getParameter("imgname");
         String imgurl = request.getParameter("imgurl");
         String priority = request.getParameter("priority");
-
-        String imgname_url = "";
-
-        if(imgurl.length() > 10){
-            imgname = (imgname.length() > 0 ? imgname : UUID.randomUUID().toString());
-            ServletContext serveapp = request.getSession().getServletContext();
-            imgname_url = AttachedPhoto(serveapp, "category", imgurl, imgname);
-        }else{
-            imgname_url = "";
-        }
+ 
 
         if (mode.equals("add")){
-            ExecuteQuery("insert into tblgamecategory set categoryname='" +rchar(categoryname)+ "', imgname='"+imgname+"', imgurl='"+imgname_url+"', priority=" + priority + "");
+            ExecuteQuery("insert into tblgamecategory set categoryname='" +rchar(categoryname)+ "', imgurl='"+imgurl+"', priority=" + priority + "");
             mainObj.put("message", "Category successfully added!");
         }else{
-            ExecuteQuery("update tblgamecategory set categoryname='" +rchar(categoryname)+ "', imgname='"+imgname+"', imgurl='"+imgname_url+"', priority=" + priority + " where code='"+code+"'");
+            ExecuteQuery("update tblgamecategory set categoryname='" +rchar(categoryname)+ "', imgurl='"+imgurl+"', priority=" + priority + " where code='"+code+"'");
             mainObj.put("message", "Category successfully updated!");
         }
 
@@ -149,6 +149,7 @@ try{
         String mode = request.getParameter("mode");
         String id = request.getParameter("id");
         String provider = request.getParameter("provider");
+        String companyname = request.getParameter("companyname");
         String api_id = request.getParameter("api_id");
         String api_key = request.getParameter("api_key");
         String game_list = request.getParameter("game_list");
@@ -161,10 +162,10 @@ try{
 
 
         if (mode.equals("add")){
-            ExecuteQuery("insert into tblgameprovider set provider='" +rchar(provider)+ "', api_id='" + api_id + "', api_key='" + api_key + "', game_list='" + game_list + "', open_game='" + open_game + "', domain='"+ domain +"', exiturl='" + exiturl + "',isdisable="+isdisable+",testerid='"+testerid+"', active="+active+"");
+            ExecuteQuery("insert into tblgameprovider set provider='" +provider+ "', companyname='" +rchar(companyname)+ "', api_id='" + api_id + "', api_key='" + api_key + "', game_list='" + game_list + "', open_game='" + open_game + "', domain='"+ domain +"', exiturl='" + exiturl + "',isdisable="+isdisable+",testerid='"+testerid+"', active="+active+"");
             mainObj.put("message", "Provider successfully added!");
         }else{
-            ExecuteQuery("update tblgameprovider set provider='" +rchar(provider)+ "', api_id='" + api_id + "', api_key='" + api_key + "', game_list='" + game_list + "', open_game='" + open_game + "', domain='"+ domain +"', exiturl='" + exiturl + "', isdisable="+isdisable+",testerid='"+testerid+"', active="+active+" where id='"+id+"'");
+            ExecuteQuery("update tblgameprovider set provider='" + provider+ "', companyname='" +rchar(companyname)+ "', api_id='" + api_id + "', api_key='" + api_key + "', game_list='" + game_list + "', open_game='" + open_game + "', domain='"+ domain +"', exiturl='" + exiturl + "', isdisable="+isdisable+",testerid='"+testerid+"', active="+active+" where id='"+id+"'");
             mainObj.put("message", "Provider successfully updated!");
         }
 
@@ -404,4 +405,198 @@ try{
 }
 %>
 
+<%!public JSONObject UpdateGameFunky(JSONObject mainObj, String provider) {
+    try{
+        GameSettings funky = new GameSettings(provider);
+        JSONObject obj = new JSONObject();
+        obj.put("gameType",  "0");
+        obj.put("language", "EN");
+        
+        String requestid = UUID.randomUUID().toString();
 
+        URL url = new URL(funky.game_list);
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.addRequestProperty("Content-Type", "Content-Type: application/x-www-form-urlencoded");
+        conn.setRequestProperty("User-Agent", funky.api_id);
+        conn.setRequestProperty("Authentication", funky.api_key);
+        conn.setRequestProperty("X-Request-ID", requestid);
+
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+
+        byte[] outputBytes = obj.toString().getBytes("UTF-8");
+        OutputStream os = conn.getOutputStream();
+        os.write(outputBytes);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+        JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject) parser.parse(br.readLine());
+
+        JSONArray objGameList = (JSONArray) json.get("gameList");
+        ExecuteQuery("DELETE from tblgamesource where provider='" + provider + "'");
+        for (int i = 0; i < objGameList.size(); i++) {
+            JSONObject objContentChild = (JSONObject) objGameList.get(i);
+
+
+                ExecuteQuery("insert into tblgamesource set " 
+                            + " provider='" + provider + "', " 
+                            + " gamecode='" + objContentChild.get("gameCode") + "', " 
+                            + " gamename='" + rchar(objContentChild.get("gameName").toString()) + "', " 
+                            + " gametype='" + objContentChild.get("gameType") + "', " 
+                            + " aliasname='" + rchar(objContentChild.get("dashboardGameName").toString()) + "', " 
+                            + " developer='" + objContentChild.get("gameProvider") + "', " 
+                            + " popularity='" + (Boolean.parseBoolean(objContentChild.get("onLobby").toString()) ? "featured" : "") + "', " 
+                            + " isnewgame=" + Boolean.parseBoolean(objContentChild.get("isNewGame").toString()) + ", " 
+                            + " desktop=" + objContentChild.get("supportedOrientation").toString().contains("Landscape") + ", " 
+                            + " mobile=" + objContentChild.get("supportedOrientation").toString().contains("Portrait")  + ", " 
+                            + " priority='0', " 
+                            + " defaultwidth='" + objContentChild.get("suggestedViewWidth") + "', " 
+                            + " defaultheight='" + objContentChild.get("suggestedViewHeight") + "', " 
+                            + " imageurl='https://funkyofficial-cdn.funkytest.com/game/en/" + objContentChild.get("gameCode") + ".png'," 
+                            + " demourl='" + objContentChild.get("demoGameUrl") + "'" 
+                            + " ");
+        }
+        
+        mainObj.put("status", "OK");
+        mainObj.put("message", "Game list successfull updated");
+        return mainObj;
+    }catch (Exception e){
+        mainObj.put("status", "ERROR");
+        mainObj.put("message", e.toString());
+        mainObj.put("errorcode", "200");
+        return mainObj;
+    }
+ }%>
+
+<%!public JSONObject UpdateGameInfinity(JSONObject mainObj, String provider) {
+    try{
+        GameSettings infi = new GameSettings(provider);
+        JSONObject obj = new JSONObject();
+        obj.put("cmd",  "gamesList");
+        obj.put("hall",  infi.api_id);
+        obj.put("key",  infi.api_key);
+        obj.put("cdnUrl",  "");
+        
+        URL url = new URL(infi.game_list);
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("User-Agent", "application/servlet");
+        conn.addRequestProperty("Content-Type", "Content-Type: application/x-www-form-urlencoded");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+
+        byte[] outputBytes = obj.toString().getBytes("UTF-8");
+        OutputStream os = conn.getOutputStream();
+        os.write(outputBytes);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+        JSONParser parser = new JSONParser();
+        JSONArray content = new JSONArray();
+        JSONObject json = (JSONObject) parser.parse(br.readLine());
+
+        JSONObject objContent = (JSONObject) json.get("content");
+        content.add(objContent);
+
+        for (int i = 0; i < content.size(); i++) {
+            JSONObject objContentChild = (JSONObject) content.get(i);
+            
+            /*
+            ExecuteQuery("DELETE FROM tblgamelables;");
+            JSONArray objGameLabels = (JSONArray) objContentChild.get("gameLabels");
+            for (int v = 0; v < objGameLabels.size(); v++) {
+                ExecuteQuery("insert into tblgamelables set description='" +rchar(objGameLabels.get(v).toString())+ "'");
+            }
+
+            ExecuteQuery("DELETE FROM tblgametitles;");
+            JSONArray objGameTitles = (JSONArray) objContentChild.get("gameTitles");
+            for (int y = 0; y < objGameTitles.size(); y++) {
+                ExecuteQuery("insert into tblgametitles set description='" +rchar(objGameTitles.get(y).toString())+ "'");
+            }
+            */
+
+            ExecuteQuery("DELETE from tblgamesource where provider='" + provider + "'");
+
+            JSONArray objGameList = (JSONArray) objContentChild.get("gameList");
+            for (int z = 0; z < objGameList.size(); z++) {
+                JSONObject objGameListChild = (JSONObject) objGameList.get(z);
+
+                ExecuteQuery("insert into tblgamesource set " 
+                            + " provider='" + provider + "', " 
+                            + " gamecode='" + objGameListChild.get("id") + "', " 
+                            + " gamename='" + rchar(objGameListChild.get("name").toString()) + "', " 
+                            + " gametype='" + objGameListChild.get("categories") + "', " 
+                            + " aliasname='" + objGameListChild.get("system_name2") + "', " 
+                            + " developer='" + objGameListChild.get("title") + "', " 
+                            + " popularity='" + objGameListChild.get("menu") + "', " 
+                            + " isnewgame=" + objGameListChild.get("menu").toString().contains("new") + ", " 
+                            + " desktop=" + (Integer.parseInt(objGameListChild.get("device").toString()) == 0 || Integer.parseInt(objGameListChild.get("device").toString()) == 2) + ", " 
+                            + " mobile=" + (Integer.parseInt(objGameListChild.get("device").toString()) == 1)  + ", " 
+                            + " priority='0', " 
+                            + " defaultwidth='0', " 
+                            + " defaultheight='0', " 
+                            + " imageurl='" + objGameListChild.get("img") + "'" 
+                            + " ");
+            }
+        }
+        
+        mainObj.put("status", "OK");
+        mainObj.put("message", "Game list successfull updated");
+        return mainObj;
+    }catch (Exception e){
+        mainObj.put("status", "ERROR");
+        mainObj.put("message", e.toString());
+        mainObj.put("errorcode", "200");
+        return mainObj;
+    }
+ }%>
+
+<%!public JSONObject UpdateGame918KissH5(JSONObject mainObj, String provider) {
+    try{
+        GameSettings kiss = new GameSettings(provider);
+
+        URL url = new URL(kiss.game_list);
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.connect();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String str_aray = ReadAllLines(br); 
+        
+        Object parsedData = JSONValue.parse(str_aray);
+        JSONArray jsonArray = (JSONArray) parsedData;
+
+        ExecuteQuery("DELETE from tblgamesource where provider='" + provider + "'");
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject objContentChild = (JSONObject) jsonArray.get(i);
+                ExecuteQuery("insert into tblgamesource set " 
+                            + " provider='" + provider + "', " 
+                            + " gamecode='" + objContentChild.get("gameid") + "', " 
+                            + " gamename='" + rchar(objContentChild.get("gamename").toString()) + "', " 
+                            + " gametype='Slot', " 
+                            + " aliasname='" + rchar(objContentChild.get("gamename").toString()) + "', " 
+                            + " developer='', " 
+                            + " popularity='', " 
+                            + " isnewgame=0, " 
+                            + " desktop=1, " 
+                            + " mobile=0, " 
+                            + " priority='0', " 
+                            + " defaultwidth='0', " 
+                            + " defaultheight='0', " 
+                            + " imageurl='"+objContentChild.get("imageurl").toString()+"'," 
+                            + " demourl=''" 
+                            + " ");
+        }
+
+        mainObj.put("status", "OK");
+        mainObj.put("message", "Game list successfull updated");
+        return mainObj;
+    }catch (Exception e){
+        mainObj.put("status", "ERROR");
+        mainObj.put("message", e.toString());
+        mainObj.put("errorcode", "200");
+        return mainObj;
+    }
+ }%>

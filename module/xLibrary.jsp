@@ -121,6 +121,40 @@
 }
 %>
 
+<%!public String AttachedImage(ServletContext application, String imageString, String filename) {
+     String PhotoUrl = "";
+    if(imageString.length() > 0) {
+        String directory = application.getRealPath((GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/media/");
+        File theDir = new File(directory);
+        if (!theDir.exists()){
+            theDir.mkdirs();
+        }
+        
+        String PhotoLocation = directory + "/" + filename;
+        PhotoUrl = GlobalHostName + (GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/media/"+filename;
+        byte[] data = DatatypeConverter.parseBase64Binary(imageString);
+        File file= new File(PhotoLocation);
+        
+        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
+            outputStream.write(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            PhotoUrl = "";
+        }
+    }else{
+         PhotoUrl = "";
+    }
+    return PhotoUrl;
+}
+%>
+
+<%!public void DeleteImage(ServletContext application, String filename) {
+    String imgfile = application.getRealPath((GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/media/" + filename);
+    File theFile = new File(imgfile);
+    if(theFile.exists()) theFile.delete();
+}
+%>
+
 <%!public String getRandomAlphaNumeric() {
     Random rnd = new Random();
     int number = rnd.nextInt(999999);
@@ -355,5 +389,15 @@
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM");
     return myDateObj.format(myFormatObj);
+  }
+%>
+
+ <%!public String ReadAllLines(Reader rd) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    int cp;
+    while ((cp = rd.read()) != -1) {
+      sb.append((char) cp);
+    }
+    return sb.toString();
   }
 %>

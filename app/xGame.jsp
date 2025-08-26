@@ -193,6 +193,142 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
         }
+    
+    }else if(x.equals("gamitech")){
+        String gameid = request.getParameter("gameid");
+
+        URL url = new URL("https://api.gamitech.net/Api/Register.php");
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("SecrtKey", "VeQVCTXEOUdhNZFi");
+        params.put("userId", userid);
+
+        StringBuilder postData = new StringBuilder();
+        for (Map.Entry<String,Object> param : params.entrySet()) {
+            if (postData.length() != 0) postData.append('&');
+            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+            postData.append('=');
+            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        }
+        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+        conn.setDoOutput(true);
+        conn.getOutputStream().write(postDataBytes);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject) parser.parse(br.readLine());
+        
+        logError("app-x-game", json.toString());
+        
+        if(json.get("status").toString().equals("100") || json.get("status").toString().equals("403")){
+            String gamesession = UUID.randomUUID().toString().replace("-","");
+            String gameurl = "https://www.gamitech.net/LoginGame3.php?game="+gameid+"&cm=redstagapp&id=" + userid;
+            CreateGameSession(gamesession, userid, sessionid, gameid, "gamitech", gameurl);
+
+            mainObj.put("status", "OK");
+            mainObj.put("sessionid", gamesession);
+            mainObj.put("message", "response valid");
+            out.print(mainObj);
+
+        }else{
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Error game api response");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+        }
+
+       
+    }else if(x.equals("kissH5")){
+        AccountInfo info = new AccountInfo(userid);
+        GameSettings game = new GameSettings("kissH5");
+        String gameid = request.getParameter("gameid");
+
+        OperatorInfo op = new OperatorInfo(info.operatorid);
+        boolean test = (op.testaccountid.equals(info.masteragentid) ? true : false);
+
+        if(game.isdisable && !game.testerid.equals(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Game provider is currently under maintenance! Please try again later");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+        }
+
+        String authcode = game.api_id;
+        String secretKey = game.api_key;
+        long time = Instant.now().getEpochSecond();
+        String sign=generateMD5((authcode+userid+time+secretKey).toLowerCase());
+
+        logError("app-x-game", sign);
+
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("userName", userid);
+        params.put("gamePlatformID", gameid);
+        params.put("gameID", gameid);
+        params.put("officialUrl", game.exiturl);
+        params.put("lang", "en-US");
+        params.put("time", time);
+        params.put("authcode", authcode);
+        params.put("sign", sign);
+
+        /*StringBuilder postData = new StringBuilder();
+        for (Map.Entry<String,Object> param : params.entrySet()) {
+            if (postData.length() != 0) postData.append('&');
+            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+            postData.append('=');
+            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        }
+        //byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+        */
+
+        String request_game =  game.open_game + "?&userName=" + userid + "&time=" + time + "&authcode=" + authcode + "&sign=" + sign;
+        
+        logError("app-x-game", request_game);
+
+        URL url = new URL(request_game);
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.addRequestProperty("Content-Type", "Content-Type: application/x-www-form-urlencoded");
+
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        //conn.getOutputStream().write(postDataBytes);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject) parser.parse(br.readLine());
+        
+        logError("app-x-game", json.toString());
+
+        if(json.get("success").toString().equals("true")){
+            /*JSONObject objOpenGame = (JSONObject) json.get("data");
+     
+            String gamesession = UUID.randomUUID().toString().replace("-","");
+            String gameurl = objOpenGame.get("gameUrl").toString() + "?token=" + objOpenGame.get("token").toString();
+            CreateGameSession(gamesession, userid, sessionid, gameid, "funky", gameurl);
+
+            GameInfo gameInfo = new GameInfo(gameid, "funky");
+            LogGameStatistic(userid, "funky", gameid, gameInfo.gamename, gameInfo.imageurl);
+
+            mainObj.put("status", "OK");
+            mainObj.put("sessionid", gamesession);
+            mainObj.put("message", "response valid");
+            out.print(mainObj);*/
+            
+        }else{
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", json.get("msg").toString());
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+        }
+
+        //LogCallback(x, "OpenGame",  json.toString());
+
 
     }else{
         mainObj.put("status", "ERROR");
@@ -206,7 +342,7 @@ try{
       mainObj.put("message", e.toString());
       mainObj.put("errorcode", "400");
       out.print(mainObj);
-      logError("app-x-event",e.getMessage());
+      logError("app-x-game",e.getMessage());
 }
 %>
 

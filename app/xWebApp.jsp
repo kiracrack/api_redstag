@@ -46,6 +46,9 @@ try{
     if(x.equals("home")){
         if(!guest){
             AccountInfo info = new AccountInfo(userid);
+            if(info.isonlineagent){
+                 mainObj = api_popup_banner(mainObj);
+            }
             mainObj = api_casino_featured(mainObj, info.masteragentid);
         }else{
             mainObj = api_casino_featured(mainObj, "");

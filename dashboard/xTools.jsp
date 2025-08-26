@@ -310,6 +310,49 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
+    }else if(x.equals("load_images")){
+        mainObj.put("status", "OK");
+        mainObj = LoadImages(mainObj);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("upload_image")){
+        String filename = request.getParameter("filename");
+        String extension = request.getParameter("extension");
+        String imagebinary = request.getParameter("imagebinary");
+         
+        if(isImageExists(filename)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Filename is already exists!");
+            mainObj.put("errorcode", "101");
+            out.print(mainObj);
+            return;
+        }
+
+        ServletContext serveapp = request.getSession().getServletContext();
+        String imageurl = AttachedImage(serveapp, imagebinary, filename + extension);
+        
+        ExecuteQuery("insert into tblimages set filename='"+filename+"', extension='"+extension+"', imageurl='"+imageurl+"'");
+
+        mainObj.put("status", "OK");
+        mainObj = LoadImages(mainObj);
+        mainObj.put("message", "Image successfully uploaded");
+        out.print(mainObj);
+
+     }else if(x.equals("delete_image")){
+        String id = request.getParameter("id");
+        
+        ImageInfo img = new ImageInfo(id);
+        ServletContext serveapp = request.getSession().getServletContext();
+        DeleteImage(serveapp, img.filename);
+        
+        ExecuteQuery("DELETE from tblimages where id='"+id+"'");
+
+        mainObj.put("status", "OK");
+        mainObj = LoadImages(mainObj);
+        mainObj.put("message", "Image successfully deleted");
+        out.print(mainObj);
+
     }else{
         mainObj.put("status", "ERROR");
         mainObj.put("message","request not valid");
@@ -326,22 +369,20 @@ try{
 %>
 
 <%!public boolean isCancelled(String fightkey) {
-    boolean cancelled = false;
-    if(CountQry("tblfightsummary", "fightkey='"+fightkey+"' and result='C'") > 0){
-        cancelled = true;
-    }
-    return cancelled;
+    return CountQry("tblfightsummary", "fightkey='"+fightkey+"' and result='C'") > 0;
   }
 %>
 
 <%!public boolean isTransactionFound(String fightkey) {
-    boolean found = false;
-    if(CountQry("tblfightbets", "fightkey='"+fightkey+"'") > 0){
-        found = true;
-    }
-    return found;
+    return CountQry("tblfightbets", "fightkey='"+fightkey+"'") > 0;
   }
 %>
+
+<%!public boolean isImageExists(String filename) {
+    return CountQry("tblimages", "filename='"+filename+"'") > 0;
+  }
+%>
+
 
 <%!public JSONObject LoadFightResultLogs(JSONObject mainObj, String operatorid, String datefrom, String dateto) {
     mainObj = DBtoJson(mainObj, "fight_result", "select eventid,fightkey,fightnumber, case  when result='M' then 'MERON'  when result='D' then 'DRAW' when result='W' then 'WALA' else 'CANCELLED' end as result, "
@@ -390,6 +431,12 @@ try{
                               + " from tblfightbets as a where operatorid='"+operatorid+"' and "
                               + " fightkey not in (select fightkey from tblevent where event_active=1) and dummy=0 and " 
                               + " date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by fightkey");
+    return mainObj;
+}
+%>
+
+<%!public JSONObject LoadImages(JSONObject mainObj) {
+    mainObj = DBtoJson(mainObj, "images", "select * from tblimages");
     return mainObj;
 }
 %>

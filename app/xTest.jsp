@@ -12,8 +12,9 @@
 <%
    JSONObject mainObj = new JSONObject();
 try{
-    
-    out.print(generateMD5Hash("GameLogin", CurrentDateTime(), "mg5redstagMYR", "TTR4D8P2MGL79OUG", ""));
+    long unixTimestamp = Instant.now().getEpochSecond();
+    out.print(unixTimestamp);
+    //out.print(generateMD5Hash("GameLogin", CurrentDateTime(), "mg5redstagMYR", "TTR4D8P2MGL79OUG", ""));
 
 }catch (Exception e){
       mainObj.put("status", "ERROR");

@@ -113,3 +113,49 @@
     return sb.toString();
   }
 %>
+
+
+<%!public String generateMD5(String inputString) throws NoSuchAlgorithmException {
+    
+    /*
+    //First Option
+    MessageDigest md = MessageDigest.getInstance("MD5");
+    byte[] bytes = md.digest(stringToHash.getBytes());
+    StringBuilder result = new StringBuilder();
+    for (byte b : bytes) {
+        result.append(String.format("%02x", b));
+    }
+    return result.toString(); */
+      
+    /*
+    //Second Option
+    try {
+         MessageDigest md = MessageDigest.getInstance("MD5");
+          byte[] inputBytes = inputString.getBytes();
+            byte[] hashBytes = md.digest(inputBytes);
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hashBytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        String md5Hash = hexString.toString();
+        return md5Hash;
+    } catch (java.security.NoSuchAlgorithmException e) {
+    }
+    return null;
+     */
+
+    try {
+        MessageDigest m = MessageDigest.getInstance("MD5");
+        m.update(inputString.getBytes(), 0, inputString.length());
+        BigInteger i = new BigInteger(1,m.digest());
+        return String.format("%1$032x", i);         
+    } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+    }
+    return null;
+  }
+%>

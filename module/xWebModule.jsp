@@ -176,6 +176,11 @@
   }
  %>
 
+ <%!public JSONObject api_popup_banner(JSONObject mainObj) {
+    mainObj = DBtoJson(mainObj, "settings", "select popup_enabled, popup_banner from tblgeneralsettings");
+    return mainObj;
+  }
+ %>
 
  <%!public JSONObject api_game_statistic(JSONObject mainObj,  String userid) {
     mainObj = DBtoJson(mainObj, "game_statistic", "select imgurl, gameid, game_type, play_count, if(game_type='cockfight', ifnull((select eventid from tblevent where arenaid=a.gameid and event_active=1),''),'') as eventid from tblgamestatistics as a where accountid='"+userid+"' order by play_count desc limit 5");
