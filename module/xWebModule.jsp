@@ -39,6 +39,7 @@
    obj.put("midnight_bonus", info.midnight_bonus);
    obj.put("midnight_amount", info.midnight_amount);
 
+   obj.put("newdeposit", info.newdeposit);
    obj.put("totaldeposit", info.totaldeposit);
    obj.put("creditbal", info.creditbal);
    obj.put("telco_enabled", info.telco_enabled);
@@ -325,7 +326,8 @@
  %>
  
 <%!public JSONObject api_promotion_list(JSONObject mainObj, String operatorid) {
-    mainObj = DBtoJson(mainObj, "promotion", "select title, promocode, description, banner_url, disabled, build_in, amount, turnover, maxwithdraw, maxclaimed from tblpromotion " +(operatorid.length() > 0 ? " where operatorid='"+operatorid+"' and disabled=0 " : " where disabled=0 ")+ " order by sortorder asc");
+    mainObj = DBtoJson(mainObj, "promotion", "select * from (select title, promocode, description, banner_url, if(build_in, 'true', 'false') as build_in from tblpromotion where disabled=0 and build_in=0 " +(operatorid.length() > 0 ? " and operatorid='"+operatorid+"' " : "")+ " order by sortorder asc) as a UNION ALL "
+                                           + "select * from (select title, promocode, description, banner_url, if(build_in, 'true', 'false') as build_in from tblpromotion where disabled=0 and build_in=1 " +(operatorid.length() > 0 ? " and operatorid='"+operatorid+"' " : "")+ " order by sortorder asc) as b");
     return mainObj;
  }
  %>

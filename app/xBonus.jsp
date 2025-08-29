@@ -60,6 +60,39 @@ try{
         mainObj.put("message", "You have successfully claim your "+info.winstrike_type.toLowerCase()+" bonus! Congratulations");
         out.print(mainObj);
 
+    }else if(x.equals("claim_custom_bonus")){ 
+            String promocode = request.getParameter("promocode");
+            String appreference = request.getParameter("appreference");
+            PromotionInfo promo = new PromotionInfo(promocode);
+
+            if(info.rebate_enabled && info.midnight_enabled && info.welcome_enabled && info.daily_enabled && info.socialmedia_enabled 
+                && info.telco_enabled && info.weekly_loss_enabled && info.winstrike_enabled && info.special_bonus_enabled && info.custom_promo_enabled){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You are currently promo actived!");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+            }
+            double turnover = 0;
+            if(promo.fix_amount) turnover = promo.amount * promo.turnover;
+            else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
+
+            double bonus = 0;
+            if(promo.fix_amount) bonus = promo.amount;
+            else bonus = info.newdeposit * (promo.amount / 100);
+
+            ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", dateclaimed=current_timestamp");
+            ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
+            ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
+            SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
+            
+            mainObj.put("status", "OK");
+            mainObj = api_account_info(mainObj, userid, false);
+            mainObj = api_custom_promo(mainObj, userid);
+            mainObj = api_promotion_list(mainObj, info.operatorid);
+            mainObj.put("message", "You have successfully claim your "+promo.title+"! Congratulations");
+            out.print(mainObj);
+
     }else{
         if(isBalanceAvailable(userid)){
             mainObj.put("status", "ERROR");
@@ -280,30 +313,6 @@ try{
             mainObj = api_weekly_rebate_winloss(mainObj, userid);
             mainObj = api_promotion_list(mainObj, info.operatorid);
             mainObj.put("message", "You have successfully claim your weekly loss rebate! Congratulations");
-            out.print(mainObj);
-
-        }else if(x.equals("claim_custom_bonus")){ 
-            String promocode = request.getParameter("promocode");
-            String appreference = request.getParameter("appreference");
-            PromotionInfo promo = new PromotionInfo(promocode);
-
-            if(info.custom_promo_code.equals(promocode)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message","You have already claimed your " + promo.title);
-                mainObj.put("errorcode", "100");
-                out.print(mainObj);
-                return;
-            }
-
-            ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+promo.amount+", dateclaimed=current_timestamp");
-            ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
-            ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", promo.amount, rchar(promo.title), userid);
-            SendBonusNotification(userid, "You have received "+String.format("%,.2f", promo.amount) + " from " + rchar(promo.title), promo.amount);
-            
-            mainObj.put("status", "OK");
-            mainObj = api_custom_promo(mainObj, userid);
-            mainObj = api_promotion_list(mainObj, info.operatorid);
-            mainObj.put("message", "You have successfully claim your "+promo.title+"! Congratulations");
             out.print(mainObj);
 
         }else{

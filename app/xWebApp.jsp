@@ -81,7 +81,16 @@ try{
         AccountInfo info = new AccountInfo(userid);
         ArenaInfo arena = new ArenaInfo(event.arenaid);
 
-        if(info.rebate_enabled){
+        if(info.custom_promo_enabled){
+            PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
+            if(!promo.cockfight){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Your current promo is not allowed to play cockfight");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+            }
+        }else if(info.rebate_enabled){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Your account is not allowed to play sabong!");
             mainObj.put("errorcode", "session");
@@ -99,7 +108,6 @@ try{
         mainObj = api_current_fight_bet(mainObj, userid, event.fightkey);
         mainObj = api_current_fight_summary(mainObj, event.fightkey, info.operatorid);
 
-        
         LogGameStatistic(userid, "cockfight", event.arenaid, arena.arenaname, arena.main_banner_url);
 
         mainObj.put("status", "OK");

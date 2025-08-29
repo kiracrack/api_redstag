@@ -85,10 +85,17 @@ try{
         String operatorid = request.getParameter("operatorid");
         String amount = request.getParameter("amount");
         String turnover = request.getParameter("turnover");
+        String mindeposit = request.getParameter("mindeposit");
+        String maxdeposit = request.getParameter("maxdeposit");
         String maxwithdraw = request.getParameter("maxwithdraw");
-        String maxclaimed = request.getParameter("maxclaimed");
+        String max_claim = request.getParameter("max_claim");
+        String claim_limit = request.getParameter("claim_limit");
 
-        ExecuteQuery("UPDATE tblpromotion set amount='"+amount+"',turnover='"+turnover+"',maxwithdraw='"+maxwithdraw+"',maxclaimed='"+maxclaimed+"' where id='"+promoid+"'");
+        boolean fix_amount = Boolean.parseBoolean(request.getParameter("fix_amount"));
+        boolean cockfight = Boolean.parseBoolean(request.getParameter("cockfight"));
+        boolean slotgame = Boolean.parseBoolean(request.getParameter("slotgame"));
+
+        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
        
         mainObj.put("status", "OK");
         mainObj.put("message", "Promo successfully updated!");
@@ -151,7 +158,7 @@ try{
  %>
 
  <%!public JSONObject load_promotion(JSONObject mainObj, String operatorid) {
-      mainObj = DBtoJson(mainObj, "promotion", "select * from tblpromotion order by sortorder asc");
+      mainObj = DBtoJson(mainObj, "promotion", "select *, if(!fix_amount, concat(amount,'%'),'-') as 'bonus_percent', if(fix_amount, amount, 0) as 'bonus_amount', concat('X', turnover) as 'turnover2' from tblpromotion order by sortorder asc");
       return mainObj;
  }
  %>

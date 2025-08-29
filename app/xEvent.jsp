@@ -46,6 +46,18 @@ try{
     }else if(x.equals("event_info")){
         String eventid = request.getParameter("eventid");
 
+        AccountInfo info = new AccountInfo(userid);
+        if(info.custom_promo_enabled){
+            PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
+            if(!promo.cockfight){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Your current promo is not allowed to play cockfight");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+            }
+        }
+
         mainObj.put("status", "OK");
         mainObj = getAccountInformation(mainObj, userid);
         mainObj = getEventInfo(mainObj, eventid);

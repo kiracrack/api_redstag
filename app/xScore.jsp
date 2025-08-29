@@ -161,19 +161,20 @@ try{
                 if(info.midnight_enabled) ExecuteQuery("UPDATE tblsubscriber set midnight_enabled=0, midnight_bonus=0, midnight_amount=0 where accountid='"+accountid+"'");
                 if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
                 if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
-                if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_maxwd=0 where accountid='"+accountid+"'");
+                if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
                 
                 if(info.isonlineagent){
+                    
                     if(info.totaldeposit == 0){
-                        ExecuteQuery("UPDATE tblsubscriber set totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
+                        ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                     }else{
                         if(info.rebate_available){
-                            ExecuteQuery("UPDATE tblsubscriber set totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
+                            ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                         }else{
                             if(isRebateDateValid(accountid)){
-                                ExecuteQuery("UPDATE tblsubscriber set totaldeposit=(totaldeposit+"+dep.amount+") where accountid='"+accountid+"' and bonus_date=current_date");
+                                ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit=(totaldeposit+"+dep.amount+") where accountid='"+accountid+"' and bonus_date=current_date");
                             }else{
-                                ExecuteQuery("UPDATE tblsubscriber set totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
+                                ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                             }
                         } 
                     }
@@ -214,8 +215,6 @@ try{
                                 ExecuteQuery("INSERT INTO tblreferral set accountid='"+accountid+"', referredid='"+info.agentid+"', deposit_amount="+dep.amount+", referral_bonus=15, datedeposit=current_timestamp");
                             }
                             amount = dep.amount + welcomeBonus;
-                        }else{
-                            ExecuteQuery("UPDATE tblsubscriber set isnewaccount=0, welcome_enabled=0, welcome_rate=0, welcome_bonus=0, welcome_amount=0 where accountid='"+accountid+"'");
                         }
                     }else{
                         if(dep.telco){

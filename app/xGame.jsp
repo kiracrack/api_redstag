@@ -37,8 +37,19 @@ try{
 		out.print(mainObj);
         return;
     }
-
     
+    AccountInfo info = new AccountInfo(userid);
+    if(info.custom_promo_enabled){
+        PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
+        if(!promo.slotgame){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Your current promo is not allowed to play slot");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+        }
+    }
+
     if(x.equals("infinity")){
         GameSettings game = new GameSettings("infinity");
         String gameid = request.getParameter("gameid");
@@ -51,7 +62,7 @@ try{
             return;
         }
 
-        AccountInfo info = new AccountInfo(userid);
+        
         OperatorInfo op = new OperatorInfo(info.operatorid);
         boolean test = (op.testaccountid.equals(info.masteragentid) ? true : false);
 
@@ -123,7 +134,6 @@ try{
         }
 
     }else if(x.equals("funky")){
-        AccountInfo info = new AccountInfo(userid);
         GameSettings funky = new GameSettings("funky");
         String gameid = request.getParameter("gameid");
 
@@ -243,7 +253,6 @@ try{
 
        
     }else if(x.equals("kissH5")){
-        AccountInfo info = new AccountInfo(userid);
         GameSettings game = new GameSettings("kissH5");
         String gameid = request.getParameter("gameid");
 

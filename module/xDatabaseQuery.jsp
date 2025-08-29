@@ -105,10 +105,11 @@ public String sqlNewAccountQuery = "select *, date_format(dateregister, '%M %d, 
 %>
 
 <%!public String sqlCustomPromoQuery(String userid){	
-        return "SELECT a.promocode, a.title, count(b.id) as promocount FROM `tblpromotion` as a left join tblbonus as b on a.promocode=b.bonuscode and b.accountid='" + userid + "' and "
-                + " case when maxclaimed='yearly' then date_format(bonusdate,'%Y')=date_format(current_date,'%Y') "
-                + " when maxclaimed='monthly' then date_format(bonusdate,'%Y-%m')=date_format(current_date,'%Y-%m') "
-                + " when maxclaimed='weekly' then WEEK(bonusdate, 1) > WEEK(CURDATE() - INTERVAL 1 WEEK, 1) "
-                + " when maxclaimed='daily' then date_format(bonusdate,'%Y-%m-%d')=date_format(current_date,'%Y-%m-%d') end where a.build_in=0 and a.disabled=0 group by promocode;";
+        return "SELECT a.promocode, a.title, a.fix_amount, a.amount, a.mindeposit, a.maxdeposit, a.max_claim, count(b.id) as promocount FROM `tblpromotion` as a left join tblbonus as b on a.promocode=b.bonuscode and b.accountid='" + userid + "' and "
+                + " case when claim_limit='yearly' then date_format(bonusdate,'%Y')=date_format(current_date,'%Y') "
+                + " when claim_limit='monthly' then date_format(bonusdate,'%Y-%m')=date_format(current_date,'%Y-%m') "
+                + " when claim_limit='weekly' then WEEK(bonusdate, 1) > WEEK(CURDATE() - INTERVAL 1 WEEK, 1) "
+                + " when claim_limit='daily' then date_format(bonusdate,'%Y-%m-%d')=date_format(current_date,'%Y-%m-%d') "
+                + " when claim_limit='none' then 0 end where a.build_in=0 and a.disabled=0 group by promocode;";
 }
 %>

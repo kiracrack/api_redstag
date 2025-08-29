@@ -276,10 +276,14 @@ try{
 
         if(info.custom_promo_enabled){
             PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
-            double turnover = promo.turnover;
+            
+            double turnover = 0;
+            if(promo.fix_amount) turnover = promo.amount * promo.turnover;
+            else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
+
             if(amount < turnover){
                 mainObj.put("status", "ERROR");
-                mainObj.put("message", "Credit score from "+promo.title+" must be "+FormatNumber(String.valueOf(promo.turnover))+" or greater than total turnover");
+                mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(turnover))+" or greater than total turnover");
                 mainObj.put("errorcode", "400");
                 out.print(mainObj);
                 return;
@@ -296,7 +300,7 @@ try{
         RemitInfo remit = new RemitInfo(bank.remittanceid);
         
         String refno = getOperatorSeriesID(info.operatorid,"series_withdrawal");  
-        if(info.iscashaccount) LogLedger(userid, sessionid, appreference, refno, "withdraw score",amount, 0, userid);
+        LogLedger(userid, sessionid, appreference, refno, "withdraw score",amount, 0, userid);
         
         boolean showOperatorAccount = false;
         if(isMasterAgentDisplayOperatorBank(info.masteragentid)) showOperatorAccount = true;
@@ -330,8 +334,12 @@ try{
             cashout = 30;
             promo_code = "social media bonus";
 
-         }else if(info.custom_promo_enabled){
-            cashout = (amount <= info.custom_promo_maxwd ? amount : info.custom_promo_maxwd);
+         }else if(info.custom_promo_enabled && info.custom_promo_maxwd != 0){
+            if(info.custom_promo_maxwd > 0){
+                cashout = (amount <= info.custom_promo_maxwd ? amount : info.custom_promo_maxwd);
+            }else{
+                cashout = (amount * info.custom_promo_maxwd);
+            }
             promo_code = info.custom_promo_name;
 
         }else{
@@ -402,7 +410,7 @@ try{
         if(info.socialmedia_enabled) ExecuteQuery("UPDATE tblsubscriber set socialmedia_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
         if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
         if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
-        if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='',custom_promo_maxwd=0 where accountid='"+accountid+"'");
+        if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
 
         if(info.telco_enabled){
             if(info.creditbal == withdraw.amount){
