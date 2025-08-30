@@ -65,14 +65,15 @@ try{
             String appreference = request.getParameter("appreference");
             PromotionInfo promo = new PromotionInfo(promocode);
 
-            if(info.rebate_enabled && info.midnight_enabled && info.welcome_enabled && info.daily_enabled && info.socialmedia_enabled 
-                && info.telco_enabled && info.weekly_loss_enabled && info.winstrike_enabled && info.special_bonus_enabled && info.custom_promo_enabled){
+            if(info.rebate_enabled || info.midnight_enabled || info.welcome_enabled || info.daily_enabled || info.socialmedia_enabled 
+                || info.telco_enabled || info.weekly_loss_enabled || info.winstrike_enabled || info.special_bonus_enabled || info.custom_promo_enabled){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message", "You are currently promo actived!");
                 mainObj.put("errorcode", "400");
                 out.print(mainObj);
                 return;
             }
+
             double turnover = 0;
             if(promo.fix_amount) turnover = promo.amount * promo.turnover;
             else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
@@ -81,6 +82,7 @@ try{
             if(promo.fix_amount) bonus = promo.amount;
             else bonus = info.newdeposit * (promo.amount / 100);
 
+            bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", dateclaimed=current_timestamp");
             ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
