@@ -20,7 +20,6 @@
    obj.put("datelogin", info.date_now);
    obj.put("timelogin", info.time_now);
    obj.put("totalonline", info.totalonline);
-   obj.put("api_player", info.api_player);
    obj.put("isagent", info.isagent);
    obj.put("isnewaccount", info.isnewaccount);
    obj.put("masteragent", info.masteragent);
@@ -34,6 +33,10 @@
    obj.put("special_bonus_enabled", info.special_bonus_enabled);
    obj.put("telco_enabled", info.telco_enabled);
    
+   obj.put("api_enabled", info.api_enabled);
+   obj.put("api_player", info.api_player);
+   obj.put("api_website", info.api_website);
+
    obj.put("midnight_available", info.midnight_available);
    obj.put("midnight_enabled", info.midnight_enabled);
    obj.put("midnight_bonus", info.midnight_bonus);

@@ -234,8 +234,9 @@ try{
     }else if(x.equals("update_api")){
         String accountid = request.getParameter("accountid");
         boolean isEnabled = Boolean.parseBoolean(request.getParameter("enabled"));
+        String api_website = request.getParameter("api_website");
 
-        ExecuteQuery("update tblsubscriber set api_enabled=" + isEnabled + " where accountid = '"+accountid+"';");
+        ExecuteQuery("update tblsubscriber set api_enabled=" + isEnabled + ",api_website='"+api_website+"' where accountid = '"+accountid+"';");
 
         mainObj.put("status", "OK");
         mainObj.put("message","Api successfully updated!");

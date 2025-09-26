@@ -47,7 +47,7 @@ try{
             out.print(mainObj);
             return;
         }
-
+        
         ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+info.winstrike_type.toLowerCase()+" bonus', bonuscode='"+ bonuscode +"', bonusdate=current_date, amount="+info.winstrike_bonus+", dateclaimed=current_timestamp");
         ExecuteQuery("UPDATE tblsubscriber set winstrike_available=0, winstrike_enabled=1 where accountid='"+userid+"'");
 
@@ -65,8 +65,29 @@ try{
             String appreference = request.getParameter("appreference");
             PromotionInfo promo = new PromotionInfo(promocode);
 
-            if(info.rebate_enabled || info.midnight_enabled || info.welcome_enabled || info.daily_enabled || info.socialmedia_enabled 
-                || info.telco_enabled || info.weekly_loss_enabled || info.winstrike_enabled || info.special_bonus_enabled || info.custom_promo_enabled){
+            if(isBalanceAvailable(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message","Please withdraw your credit balance in order to claim your bonus!");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+
+            }else if(isTherePendingDeposit(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Bonus cannot be claim due to pending deposit");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+
+            }else if(isTherePendingWithdrawal(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Bonus cannot be claim due to pending withdrawal!");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+
+            }else if((info.rebate_enabled || info.midnight_enabled || info.welcome_enabled || info.daily_enabled || info.socialmedia_enabled 
+                || info.telco_enabled || info.weekly_loss_enabled || info.winstrike_enabled || info.special_bonus_enabled || info.custom_promo_enabled) && info.creditbal > 2){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message", "You are currently promo actived!");
                 mainObj.put("errorcode", "400");
@@ -83,6 +104,7 @@ try{
             else bonus = info.newdeposit * (promo.amount / 100);
 
             bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
+            ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", dateclaimed=current_timestamp");
             ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
@@ -139,6 +161,7 @@ try{
                 return;
             }
 
+            ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='weekly referral bonus', bonuscode='WRB-"+dw.prev_week_code+"', bonusdate=current_date, amount="+bonus_prev.amount+", dateclaimed=current_timestamp");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus_prev.amount, "weekly referral bonus", userid);
             SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus_prev.amount) + " from weekly referral bonus", bonus_prev.amount);
@@ -172,7 +195,8 @@ try{
                 out.print(mainObj);
                 return;
             }
-    
+
+            ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='5% weekly referral comission', bonuscode='WRC-"+dw.prev_week_code+"', bonusdate=current_date, amount="+prevCommission+", dateclaimed=current_timestamp");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", prevCommission, "5% weekly referral comission", userid);
             SendBonusNotification(userid, "You have received "+String.format("%,.2f", prevCommission) + " from 5% weekly referral comission", prevCommission);
@@ -201,10 +225,9 @@ try{
             }
 
             double amount = info.totaldeposit * 0.08;
-            if(amount > 1688){
-                amount = 1688;
-            }
+            if(amount > 1688) amount = 1688;
             
+            ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='8% daily rebate bonus', bonuscode='rebate', bonusdate='" +info.bonus_date+ "', amount="+amount+", dateclaimed=current_timestamp");
             ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=1, bonus_amount="+amount+" where accountid='"+userid+"'");
 
@@ -238,6 +261,7 @@ try{
 
             }
             
+            ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='daily turnover cash bonus', bonuscode='turnover', bonusdate=current_date, amount="+turnover.bonus+", dateclaimed=current_timestamp");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", turnover.bonus, "daily turnover cash bonus", userid);
             SendBonusNotification(userid, "You have received "+String.format("%,.2f", turnover.bonus) + " from daily turnover cash bonus", turnover.bonus);
@@ -260,6 +284,7 @@ try{
                 return;
             }
             
+            ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='social media bonus', bonuscode='socialmedia', bonusdate=current_date, amount="+info.bonus_amount+", dateclaimed=current_timestamp");
             ExecuteQuery("UPDATE tblsubscriber set socialmedia_available=0, socialmedia_enabled=1 where accountid='"+userid+"'");
 
@@ -305,7 +330,7 @@ try{
             
             }
             
-            if(prevRebate > 1688) prevRebate = 1688;
+            if(prevRebate > 1688) prevRebate = 1688; ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='5% weekly loss rebate', bonuscode='WRW-"+dw.prev_week_code+"', bonusdate=current_date, amount="+prevRebate+", dateclaimed=current_timestamp");
             ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=1, rebate_enabled=0 where accountid='"+userid+"'");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", prevRebate, "5% weekly loss rebate", userid);
@@ -333,3 +358,16 @@ try{
       logError("app-x-bonus",e.getMessage());
 }
 %>
+
+<%!public void ClearExistingBonus(String accountid){
+    AccountInfo info = new AccountInfo(accountid);
+    if(info.welcome_enabled) ExecuteQuery("UPDATE tblsubscriber set welcome_enabled=0, welcome_rate=0, welcome_bonus=0, welcome_amount=0 where accountid='"+accountid+"'");
+    if(info.daily_enabled) ExecuteQuery("UPDATE tblsubscriber set daily_enabled=0, daily_rate=0 where accountid='"+accountid+"'");
+    if(info.rebate_enabled) ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=0, bonus_amount=0, totaldeposit=0 where accountid='"+accountid+"'");
+    if(info.midnight_enabled) ExecuteQuery("UPDATE tblsubscriber set midnight_enabled=0, midnight_bonus=0, midnight_amount=0 where accountid='"+accountid+"'");
+    if(info.winstrike_enabled) ExecuteQuery("UPDATE tblsubscriber set winstrike_enabled=0, winstrike_selection='', winstrike_category='', winstrike_eventid='', winstrike_bonus=0 where accountid='"+accountid+"'");
+    if(info.socialmedia_enabled) ExecuteQuery("UPDATE tblsubscriber set socialmedia_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
+    if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
+    if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
+    if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
+}%>

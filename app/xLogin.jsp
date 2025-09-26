@@ -103,6 +103,20 @@ try{
             String newsessionid = (isAllowedMultiSession(accountid) ? "" : UUID.randomUUID().toString()); 
 
             AccountInfo info = new AccountInfo(accountid);
+            if(!devicename.equals("webapp") && info.api_enabled){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Your account is available on web version only");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+            }else if(info.api_player){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Your account is allowed to enter this version!");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+            }
+
             OperatorInfo op = new OperatorInfo(info.operatorid);
             if(info.referralcode.length() == 0){
                 String referralcode = getAccountReferralCode();

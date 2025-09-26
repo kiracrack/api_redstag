@@ -7,6 +7,8 @@
 <%@ include file="../module/xCasinoClass.jsp" %>
 <%@ include file="../module/xFirebase.jsp" %>
 <%@ include file="../module/xPusher.jsp" %>
+<%@ include file="../module/xApiModule.jsp" %>
+<%@ include file="../module/xApiClass.jsp" %>
 
 <%
    JSONObject mainObj =new JSONObject();
@@ -14,7 +16,12 @@ try{
 
     String x = Decrypt(request.getParameter("x"));
     String userid = request.getParameter("userid");
+    String referer = request.getParameter("referer");
     boolean guest = Boolean.parseBoolean(request.getParameter("guest"));
+     
+    if(referer == null) referer = getDirectIPAddress(request);
+    if(isVisitorsBlocked(referer)) return;
+    LogVisitors(referer, (guest ? "": userid));
 
     if(x.isEmpty()){
         mainObj.put("status", "ERROR");
@@ -46,9 +53,9 @@ try{
     if(x.equals("home")){
         if(!guest){
             AccountInfo info = new AccountInfo(userid);
-            if(info.isonlineagent){
-                 mainObj = api_popup_banner(mainObj);
-            }
+            if(info.isonlineagent) mainObj = api_popup_banner(mainObj);
+            if(info.api_enabled) mainObj = api_admin_dashboard(mainObj, userid);
+            
             mainObj = api_casino_featured(mainObj, info.masteragentid);
         }else{
             mainObj = api_casino_featured(mainObj, "");
@@ -77,6 +84,8 @@ try{
         
     }else if(x.equals("event")){
         String eventid = request.getParameter("eventid");
+
+        logError("api-x-eventid", eventid);
         EventInfo event = new EventInfo(eventid, false);
         AccountInfo info = new AccountInfo(userid);
         ArenaInfo arena = new ArenaInfo(event.arenaid);
@@ -159,9 +168,11 @@ try{
         out.print(mainObj);
     
     }else if(x.equals("player") || x.equals("referred")){
+        AccountInfo info = new AccountInfo(userid);
         mainObj = api_account_list(mainObj, userid, false);
         mainObj.put("status", "OK");
         mainObj.put("account_type", x);
+        mainObj.put("api_enabled", info.api_enabled);
         mainObj.put("message","Result synchronized");
         out.print(mainObj);
 
@@ -199,6 +210,66 @@ try{
         mainObj.put("status", "OK");
         mainObj.put("message","request returned valid");
         out.print(mainObj);
+
+    /* api admin functions */
+     }else if(x.equals("api_credit_transaction")){
+        String accountid = request.getParameter("accountid");
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+        
+        mainObj = api_credit_transaction(mainObj, accountid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "response valid");
+        out.print(mainObj);
+
+    }else if(x.equals("bet_history") || x.equals("player_bet_history")){
+        String accountid = request.getParameter("accountid");
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_bet_history(mainObj, accountid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("accountid", accountid);
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_player_account")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = api_player_accounts(mainObj, userid, datefrom, dateto);
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_winloss_report")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_winloss_report(mainObj, userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_cash_in_report")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_cash_transaction_report(mainObj, "ADD", userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_cash_out_report")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_cash_transaction_report(mainObj, "DEDUCT", userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    /* api admin functions */
 
     }else{
         mainObj.put("status", "ERROR");

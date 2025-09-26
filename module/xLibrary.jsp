@@ -245,6 +245,37 @@
 }
 %>
 
+<%!public boolean isVisitorsBlocked(String ipaddress) {
+    return CountQry("tblwebvisitor", "ipaddress='"+ipaddress+"' and blocked=1") > 0;
+  }
+%>
+
+<%!public boolean isVisitorsExists(String ipaddress) {
+    return CountQry("tblwebvisitor", "ipaddress='"+ipaddress+"'") > 0;
+}
+%>
+
+<%!public void LogVisitors(String ipaddress, String accountid){
+    if(isVisitorsExists(ipaddress)){
+        ExecuteQuery("UPDATE tblwebvisitor set counts=counts+1 " + (!accountid.isEmpty() ? ", accountid='"+accountid+"'" : "") + " where ipaddress='"+ipaddress+"'");
+    }else{
+        ExecuteQuery("insert into tblwebvisitor set ipaddress='"+ipaddress+"', " + (!accountid.isEmpty() ? " accountid='"+accountid+"', " : "") + " counts=counts+1");
+    }
+}%>
+
+<%!public String getDirectIPAddress(HttpServletRequest request) {
+    for (String header : HEADERS_TO_TRY) {
+        String ip = request.getHeader(header);
+        if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+            return ip;
+        }
+    }
+
+    return request.getRemoteAddr();
+}
+%>
+
+
 <%!public void LogActivity(String userid, String details) {
     ExecuteQuery("insert into tblactivitylogs set datetrn=current_timestamp, userid='"+userid+"',details=lcase('"+rchar(details.toString())+"')");
 }

@@ -128,10 +128,10 @@
 
 <%!public class AccountInfo{
     public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name;
-    public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type;
+    public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website;
     public double commissionrate, creditbal, videomincredit, minbet, maxbet, bonus_amount, newdeposit, totaldeposit, telco_deposit, telco_withdraw;
     public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover;
-    public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
+    public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
     public boolean telco_enabled, welcome_enabled, daily_enabled, socialmedia_available, socialmedia_enabled, winstrike_available, winstrike_enabled, weekly_loss_enabled, special_bonus_enabled, custom_promo_enabled;
     public int totalonline;
     public AccountInfo(String accountid){
@@ -180,7 +180,11 @@
                 this.date_now = rst.getString("date_now");
                 this.time_now = rst.getString("time_now");
                 this.totalonline = rst.getInt("totalonline");
+
+                this.api_enabled = rst.getBoolean("api_enabled");
                 this.api_player = rst.getBoolean("api_player");
+                this.api_website = rst.getString("api_website");
+                
                 this.isonlineagent = rst.getBoolean("isonlineagent");
                 this.isnewaccount = rst.getBoolean("isnewaccount");
 

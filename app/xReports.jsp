@@ -54,9 +54,11 @@ try{
         String accountid = request.getParameter("accountid");
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
+        AccountInfo info = new AccountInfo(accountid);
 
         mainObj = LoadSabongBetsReport(mainObj, accountid, datefrom, dateto);
         mainObj.put("status", "OK");
+        mainObj.put("api_player", info.api_player);
         mainObj.put("message", "data synchronized");
         out.print(mainObj);
 

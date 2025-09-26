@@ -355,6 +355,11 @@
   }
 %>
 
+<%!public boolean isTherePendingScoreRequest(String userid) {
+    return CountQry("tblcreditrequest", "userid='"+userid+"' and confirmed=0 and cancelled=0") > 0;
+  }
+%>
+
 <%!public boolean isBonusExists(String userid, String bonuscode) {
     return CountQry("tblbonus", "accountid='"+userid+"' and bonuscode='"+bonuscode+"'") > 0;
  }

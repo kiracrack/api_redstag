@@ -304,6 +304,23 @@ try{
         String appreference =  request.getParameter("appreference");
         double amount = Double.parseDouble(request.getParameter("amount"));
         String platform = request.getParameter("platform"); if(platform == null) platform = "android";
+
+        if(amount > 10000){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Request failed: Amount exceeds allowed limit");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }else if(isTherePendingScoreRequest(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You already have a pending score request! We only allow one request at a time");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }
+
         AccountInfo ai = new AccountInfo(userid);
  
         String transactionno = getOperatorSeriesID(ai.operatorid,"series_load_request");

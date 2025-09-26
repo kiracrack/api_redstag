@@ -1,14 +1,10 @@
 <%@ include file="../module/db.jsp" %>
 <%@ include file="../module/xLibrary.jsp" %>
 <%@ include file="../module/xRecordModule.jsp" %>
-<%@ include file="../module/xApiModule.jsp" %>
 <%@ include file="../module/xWebModule.jsp" %>
 <%@ include file="../module/xRecordClass.jsp" %>
-<%@ include file="../module/xCasinoClass.jsp" %>
-<%@ include file="../module/xCasinoModule.jsp" %>
-<%@ include file="../module/xPusher.jsp" %>
-<%@ include file="../module/xFirebase.jsp" %>
-
+<%@ include file="../module/xApiModule.jsp" %>
+<%@ include file="../module/xApiClass.jsp" %>
 
 <%
    JSONObject mainObj = new JSONObject();
@@ -18,7 +14,6 @@ try{
     String key = request.getParameter("key");
     String userid = request.getParameter("userid");
     String referer = request.getParameter("referer");
-    String ipaddress = request.getParameter("ipaddress");
 
     if(x.isEmpty() || key.isEmpty() || userid.isEmpty() || referer.isEmpty()){
         mainObj.put("status", "ERROR");
@@ -26,28 +21,29 @@ try{
         mainObj.put("errorcode", "403");
         out.print(mainObj);
         return;
+
     }else if(!isApiKeyValid(key)){
         mainObj.put("status", "ERROR");
         mainObj.put("message", "api request forbidden");
         mainObj.put("errorcode", "403");
         out.print(mainObj);
         return;
-        
+
     }else if(!isInWhiteList(key, referer)){
-        
         DeniedAddress(key, referer);
         mainObj.put("status", "ERROR");
         mainObj.put("message", "header x-requested is not allowed");
         mainObj.put("errorcode", "405");
         out.print(mainObj);
-
         return;
+
     }else if(isContainSpecialChar(userid)){
         mainObj.put("status", "ERROR");
         mainObj.put("message", "user id invalid format");
         mainObj.put("errorcode", "400");
         out.print(mainObj);
         return;
+
     }else if(globalEnableMaintainance){
         mainObj.put("status", "ERROR");
         mainObj.put("message", globalMaintainanceMessage);
@@ -60,14 +56,17 @@ try{
 
     PlayerInfoApi info = new PlayerInfoApi(key, userid);
 
-    if(x.equals("api_login")){
+    if(x.equals("open-game")){
+        String webapp = request.getParameter("webapp");
         String nickname = request.getParameter("nickname");
+
         if(nickname.length() > 0 && isContainSpecialChar(nickname)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "nickname is invalid format! strickly alpha numeric only");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
+
         }else if(isBlocked(info.accountid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "account access blocked");
@@ -77,16 +76,14 @@ try{
         }
 
         OperatorInfoApi op = new OperatorInfoApi(key);
-        ExecuteQuery("UPDATE tblsubscriber set fullname=ucase('"+nickname+"'), displayname=ucase('"+nickname+"'), api_website='" + op.api_website + "' where accountid='"+info.accountid+"'");
-
         String sessionid = UUID.randomUUID().toString();
-        if(LogLoginSession(info.accountid, sessionid, "", "", ipaddress)){
-            mainObj.put("status", "OK");
-            mainObj = api_account_info(mainObj, info.accountid, true);
-            mainObj.put("message","login succeeded");
-            out.print(mainObj);
-        }
+        ExecuteQuery("UPDATE tblsubscriber set fullname=ucase('"+nickname+"'), displayname=ucase('"+nickname+"'), sessionid='"+sessionid+"', api_website='" + op.api_website + "' where accountid='"+info.accountid+"'");
 
+        mainObj.put("status", "OK");
+        mainObj.put("message","request succeeded");
+        mainObj.put("auth_url", "https://" + webapp + "/auth?sessionid="+sessionid);
+        out.print(mainObj);
+ 
     }else if(x.equals("account-info")){
         mainObj.put("status", "OK");
         mainObj = getPlayeinfoApi(mainObj, info.accountid);
@@ -122,10 +119,17 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
+        }else if(reference.isEmpty()){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","reference number is empty");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
         } 
 
         String transactionno = getOperatorSeriesID(info.operatorid,"series_credit_transfer");
-        ExecuteSetScore(info.operatorid, info.sessionid, reference, info.accountid, info.fullname, "ADD", amount, "WALLET CASH-IN", info.accountid);
+        ExecuteLogTransaction(info.accountid, info.agentid, info.sessionid, reference, transactionno, "wallet score added", "", amount, 0);
+        ExecuteSetScore(info.operatorid, info.sessionid, reference, info.accountid, info.fullname, "ADD", amount, "wallet score added", info.accountid);
         
         AccountBalance b = new AccountBalance(info.accountid);
         mainObj.put("status", "OK");
@@ -155,10 +159,18 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
+            
+        }else if(reference.isEmpty()){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","reference number is empty");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
         }
 
-        String description = "WALLET CASH-OUT";
+        String description = "wallet score removed";
         String transactionno = getOperatorSeriesID(info.operatorid,"series_credit_transfer");
+        ExecuteLogTransaction(info.accountid, info.agentid, info.sessionid, reference, transactionno, description, "", -amount, 0);
         ExecuteSetScore(info.operatorid, info.sessionid, reference, info.accountid, info.fullname, "DEDUCT", amount, description, info.accountid);
         
         AccountBalance b = new AccountBalance(info.accountid);
@@ -191,22 +203,13 @@ try{
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
 
+        PlayerWinlossApi p = new PlayerWinlossApi(info.accountid, datefrom, dateto);
         mainObj = api_bets_report(mainObj, info.accountid, datefrom, dateto);
         mainObj.put("status", "OK");
+        mainObj.put("winloss", p.winloss);
         mainObj.put("message","query succeeded");
         out.print(mainObj);
-
-    }else if(x.equals("win-loss-record")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-
-        PlayerWinlossCockfightApi cockfight = new PlayerWinlossCockfightApi(info.accountid, datefrom, dateto);
-        mainObj = api_win_loss_report(mainObj, info.accountid, datefrom, dateto);
-        mainObj.put("status", "OK");
-        mainObj.put("winloss", cockfight.winloss);
-        mainObj.put("message","query succeeded");
-        out.print(mainObj);
-
+ 
     }else{
         mainObj.put("status", "ERROR");
         mainObj.put("message","bad request, method not valid");
@@ -232,6 +235,7 @@ try{
   }
 %>
 
+
 <%!public void DeniedAddress(String key, String referer) {
     ExecuteQuery("insert into tblapideniedaccess set apikey='"+key+"', domain='"+referer+"',datelogs=current_timestamp");
   }
@@ -252,13 +256,7 @@ try{
  <%!public JSONObject api_bets_report(JSONObject mainObj, String userid, String datefrom, String dateto) {
       mainObj = DBtoJson(mainObj, "data", "select id, transactionno, date_format(datetrn, '%Y-%m-%d') as 'date', result, date_format(datetrn, '%r') as 'time', fightnumber, bet_amount, "
             + " eventid, if(bet_choice='M','Meron',if(bet_choice='W','Wala', 'Draw')) as bet_choice, odd,  winloss from " 
-            + " (SELECT id, transactionno, fightnumber, bet_amount, datetrn, eventid, bet_choice, odd, if(cancelled,'Cancelled', if(result='M','Meron',if(result='W','Wala', 'Draw'))) as result, if(win,payback_total, 0) as win_bonus, if(!win,payback_total, 0) as payback_bonus, winloss "
+            + " (SELECT id, transactionno, fightnumber, bet_amount, datetrn, eventid, bet_choice, odd, if(cancelled,'Cancelled', if(result='M','Meron',if(result='W','Wala', 'Draw'))) as result, (win_amount - lose_amount) as winloss "
             + " FROM tblfightbets2 where accountid='"+userid+"') as x where date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by id asc");
       return mainObj;
  }%>
-
-<%!public JSONObject api_win_loss_report(JSONObject mainObj, String accountid, String datefrom, String dateto) {
-    mainObj = DBtoJson(mainObj, "win_loss_report", "SELECT sessionid, transactionno, description, betinfo, amount, winloss, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time' FROM tblcredittransaction as a where accountid='"+accountid+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
-    return mainObj;
-  }
- %>

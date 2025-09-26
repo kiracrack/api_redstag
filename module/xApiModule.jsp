@@ -8,31 +8,59 @@
   }
  %>
 
+<%!public JSONObject api_player_accounts(JSONObject mainObj, String agentid, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "data", "select accountid, api_identifier as 'identifier', creditbal as score, fullname as accountname, ifnull(date_format(lastlogindate,'%Y-%m-%d'),'') as datelogin, ifnull(date_format(lastlogindate,'%r'),'') as timelogin, " 
+                    + " date_format(dateregistered,'%Y-%m-%d') as datecreated, date_format(dateregistered,'%r') as timecreated, "
+                    + " blocked, date_format(dateblocked,'%Y-%m-%d') as dateblocked, date_format(dateblocked,'%r') as timeblocked "
+                    + " from tblsubscriber where agentid='"+agentid+"'  and date_format(lastlogindate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by lastlogindate asc");
+      return mainObj;
+ }
+ %>
+
+<%!public JSONObject api_winloss_report(JSONObject mainObj, String agentid, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "data", "select * from (SELECT accountid, display_name, group_concat(distinct(select arenaname from tblarena where arenaid=a.arenaid)) as arenaname, "
+            + " (select api_identifier from tblsubscriber where accountid=a.accountid) as identifier, (select creditbal from tblsubscriber where accountid=a.accountid) as creditbal, ROUND(sum(win_amount) - sum(lose_amount),2) as winloss "
+            + " FROM tblfightbets2 as a where agentid='"+agentid+"' and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' group by accountid) as x order by winloss asc");
+      return mainObj;
+ }%>
+
+<%!public JSONObject api_cash_transaction_report(JSONObject mainObj, String trntype, String agentid, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "data", "SELECT accountid, fullname, transactionno, (select api_identifier from tblsubscriber where accountid=a.accountid) as identifier, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time', amount from `tblcreditloadlogs` as a where agentid='"+agentid+"' and trntype='"+trntype+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by datetrn asc");
+      return mainObj;
+ }%>
+
+<%!public JSONObject api_credit_transaction(JSONObject mainObj, String accountid, String datefrom, String dateto) {
+    mainObj = DBtoJson(mainObj, "credit_transaction", "SELECT  *, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time' FROM tblcredittransaction as a where accountid='"+accountid+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
+    return mainObj;
+  }
+ %>
+
+<%!public JSONObject api_bet_history(JSONObject mainObj, String userid, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "bet_history", "select date_format(datetrn, '%m/%d/%y') as 'date', result, date_format(datetrn, '%r') as 'time', fightnumber, transactionno, bet_amount, "
+            + "  eventid, arena, if(bet_choice='M','Meron',if(bet_choice='W','Wala', 'Draw')) as bet_choice, odd, concat(odd,'%') as odds, winloss from " 
+            + " (SELECT fightnumber, transactionno, bet_amount, datetrn, eventid, (select arenaname from tblarena where arenaid=a.arenaid) as arena, bet_choice, odd, if(result='','Cancelled', if(result='M','Meron',if(result='W','Wala', 'Draw'))) as result, " 
+            + "  ROUND(win_amount - lose_amount,2) as winloss "
+            + " FROM tblfightbets2 as a where accountid='"+userid+"') as x where date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by datetrn asc");
+      return mainObj;
+ }%>
+
 <%!public boolean isApiKeyValid(String key) {
-    if(CountQry("tblsubscriber", "MD5(concat(accountid, '"+globalPassKey+"'))='"+key+"' and api_enabled=1") > 0){
-        return true;
-    }else{
-        return false;
-    }
+    return CountQry("tblsubscriber", "MD5(concat(accountid, '"+globalPassKey+"'))='"+key+"' and api_enabled=1") > 0;
+  }
+ %>
+
+ <%!public boolean isSessionValid(String sessionid) {
+    return CountQry("tblsubscriber", "sessionid='"+sessionid+"' and api_player=1") > 0;
   }
  %>
 
 <%!public boolean isInWhiteList(String key, String domain) {
-    if(CountQry("tblapiwhitelist", "MD5(concat(accountid, '"+globalPassKey+"'))='"+key+"' and domainname='" + domain + "'") > 0){
-        return true;
-    }else{
-        ExecuteQuery("insert into tblapideniedaccess set apikey='"+key+"', domain='"+domain+"', datelogs=current_timestamp");
-        return false;
-    }
+    return CountQry("tblapiwhitelist", "MD5(concat(accountid, '"+globalPassKey+"'))='"+key+"' and domainname='" + domain + "'") > 0;
   }
 %>
 
 <%!public boolean isUserExists(String key, String userid) {
-    if(CountQry("tblsubscriber", "MD5(concat(agentid, '"+globalPassKey+"'))='"+key+"' and api_userid=MD5(concat('"+userid+"', '"+globalPassKey+"')) and api_player=1") > 0){
-        return true;
-    }else{
-        return false;
-    }
+    return CountQry("tblsubscriber", "MD5(concat(agentid, '"+globalPassKey+"'))='"+key+"' and api_userid=MD5(concat('"+userid+"', '"+globalPassKey+"')) and api_player=1") > 0;
   }
 %>
 
@@ -49,97 +77,31 @@
 <%!public void CreateNewAccount(String key, String userid) {
     OperatorInfoApi op = new OperatorInfoApi(key);
     String newid = getOperatorAccount(op.operatorid, "series_subscriber");
-    String referralcode = getAccountReferralCode();
+
     ExecuteQuery("insert into tblsubscriber set operatorid='"+op.operatorid+"', "
                 + " accountid='"+newid+"', "
-                + " fullname=ucase('"+newid+"'), "
-                + " displayname=ucase('"+newid+"'), " 
-                + " username=LCASE('" + newid + "'), "
+                + " fullname=ucase('"+userid+"'), "
+                + " displayname=ucase('"+userid+"'), " 
+                + " username=LCASE('" + userid + "'), "
                 + " password=AES_ENCRYPT('"+userid+"', '"+globalPassKey+"'), "
                 + " dateregistered=current_timestamp, "
-                + " accounttype='player_cash', isagent=0, "
+                + " accounttype='player_non_cash', isagent=0, "
                 + " agentid='"+op.agentid+"', "
                 + " masteragentid='"+op.masteragentid+"', "
                 + " api_userid=MD5(concat('"+userid+"', '"+globalPassKey+"')), "
                 + " api_identifier='"+userid+"', "
                 + " api_player=1," 
-                + " referralcode='"+referralcode+"', " 
-                + " iscashaccount=1, isnewaccount=1");
+                + " iscashaccount=0");
 
     ExecuteQuery("insert into tblpasswordhistory set userid='"+newid+"', password=AES_ENCRYPT('"+userid+"', '"+globalPassKey+"'),changedate=current_timestamp");
   }
  %>
 
- <%!public class OperatorInfoApi{
-    public String operatorid, masteragentid, agentid, api_website;
-    public double commissionrate;
-    public OperatorInfoApi(String key){
-        try{
-            ResultSet rst = null; 
-            rst =  SelectQuery("select accountid, masteragentid, operatorid, commissionrate, api_website from tblsubscriber as a where MD5(concat(accountid, '"+globalPassKey+"'))='"+key+"'");
-            while(rst.next()){
-                this.operatorid = rst.getString("operatorid");  
-                this.masteragentid = rst.getString("masteragentid");  
-                this.agentid = rst.getString("accountid");  
-                this.commissionrate = rst.getDouble("commissionrate");
-                this.api_website = rst.getString("api_website");  
-            }
-            rst.close();
-        }catch(SQLException e){
-            logError("class-api-operator-info",e.toString());
-        }
-    }
+<%!public void ExecuteLogTransaction(String accountid, String agentid, String sessionid, String appreference, String transactionno, String description, String betinfo, double amount, double winloss){
+    if(!isTransactionFound(accountid, sessionid, appreference, transactionno, description, amount, winloss)) 
+    ExecuteLedger("insert into tblcredittransaction set accountid='"+accountid+"', agentid='"+agentid+"', sessionid='"+sessionid+"',appreference='"+appreference+"',transactionno='"+transactionno+"',description='"+rchar(description)+"', betinfo='"+betinfo+"', amount='"+amount+"',winloss='"+winloss+"',datetrn=current_timestamp");
 }%>
 
-<%!public class PlayerInfoApi{
-    public String accountid, operatorid, sessionid, fullname;
-    public double creditbal;
-    public PlayerInfoApi(String key, String userid){
-        try{
-            ResultSet rst = null; 
-            rst =  SelectQuery("select accountid, fullname, operatorid, sessionid, creditbal from tblsubscriber as a where MD5(concat(agentid, '"+globalPassKey+"'))='"+key+"' and api_userid=MD5(concat('"+userid+"', '"+globalPassKey+"')) and api_player=1");
-            while(rst.next()){
-                this.operatorid = rst.getString("operatorid");  
-                this.accountid = rst.getString("accountid");
-                this.fullname = rst.getString("fullname");
-                this.sessionid = rst.getString("sessionid");
-                this.creditbal = rst.getDouble("creditbal");
-            }
-            rst.close();
-        }catch(SQLException e){
-            logError("class-api-player-info",e.toString());
-        }
-    }
-}%>
-
-<%!public class PlayerWinlossApi{
-    public double winloss;
-    public PlayerWinlossApi(String userid, String datefrom, String dateto){
-        try{
-            ResultSet rst = null; 
-            rst =  SelectQuery("select ROUND(sum(win_amount) - sum(lose_amount),2) as winloss from tblfightbets2 as a where accountid='"+userid+"'  and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
-            while(rst.next()){
-                this.winloss = rst.getDouble("winloss");  
-            }
-            rst.close();
-        }catch(SQLException e){
-            logError("class-api-win-loss",e.toString());
-        }
-    }
-}%>
-
-<%!public class OperatorWinlossApi{
-    public double winloss;
-    public OperatorWinlossApi(String agentid, String datefrom, String dateto){
-        try{
-            ResultSet rst = null; 
-            rst =  SelectQuery("select ROUND(sum(win_amount) - sum(lose_amount),2) as winloss from tblfightbets2 as a where agentid='"+agentid+"'  and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
-            while(rst.next()){
-                this.winloss = rst.getDouble("winloss");  
-            }
-            rst.close();
-        }catch(SQLException e){
-            logError("class-api-win-loss",e.toString());
-        }
-    }
+<%!public boolean isTransactionFound(String accountid, String sessionid, String appreference, String transactionno, String description, double amount, double winloss){
+    return CountQry("tblcredittransaction", "accountid='"+accountid+"' and sessionid='"+sessionid+"' and appreference='"+appreference+"' and transactionno='"+transactionno+"' and description='"+rchar(description)+"' and amount='"+amount+"' and winloss='"+winloss+"'") > 0;
 }%>

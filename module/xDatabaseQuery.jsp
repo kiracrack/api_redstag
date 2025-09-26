@@ -1,5 +1,5 @@
 <%!
-public String sqlAgentQuery = "select operatorid, accountid, username, fullname, accounttype, agentid, isagent, masteragentid, displayname, mobilenumber, "
+public String sqlAgentQuery = "select operatorid, accountid, username, fullname, accounttype, agentid, isagent, masteragent, masteragentid, displayname, mobilenumber, "
         + " creditbal, commissionrate, displayoperatorbank, lastlogindate, photoupdated, blocked, iscashaccount, photourl, referralcode, isfreecredit, hasfreeaccount, freeaccountid, "
         + " if(accounttype='master', 'Master', if(accounttype='agent', 'Agent', if(accounttype='player_cash', 'Cash', 'Non-Cash'))) as 'accountype', " 
         + " case when blocked=1 then 'Blocked' else 'Active' end as status, " 
@@ -9,7 +9,7 @@ public String sqlAgentQuery = "select operatorid, accountid, username, fullname,
         + " ifnull(date_format(lastlogindate, '%r'),'') as 'time_login', "
         + " ifnull((select fullname from tblsubscriber as x where x.accountid=a.masteragentid and x.masteragent=1 limit 1 ),'MASTER') as masteragentname, "  
         + " ifnull((select fullname from tblsubscriber as x where x.accountid=a.agentid limit 1),'MASTER') as agentname, "
-        + " current_timestamp, api_enabled, MD5(concat(accountid, 'my.ph')) as apikey "  
+        + " current_timestamp, api_enabled, api_website, MD5(concat(accountid, 'my.ph')) as apikey "  
         + " from tblsubscriber as a ";
 
 public String sqlAccountQuery = "select a.operatorid, a.accountid, username, fullname, codename, address, emailaddress, accounttype, a.agentid, masteragent, isagent, a.masteragentid, displayname, mobilenumber, "

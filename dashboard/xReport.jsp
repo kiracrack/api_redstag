@@ -143,17 +143,6 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
-    }else if(x.equals("game_streak_report")){
-        String operatorid = request.getParameter("operatorid");
-        boolean range = Boolean.parseBoolean(request.getParameter("range"));
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-
-        mainObj.put("status", "OK");
-        mainObj = game_streak_report(mainObj,operatorid,range,datefrom,dateto);
-        mainObj.put("message", "Successfull Synchronized");
-        out.print(mainObj);
-
     }else if(x.equals("online_deposit_withdraw")){
         String operatorid = request.getParameter("operatorid");
         boolean range = Boolean.parseBoolean(request.getParameter("range"));
@@ -501,9 +490,11 @@ try{
                               + " fullname as 'Fullname', " 
                               + " username as 'Username', " 
                               + " mobilenumber as 'Mobile Number', " 
-                              + " address as 'Address', " 
-                              + " creditbal as 'Score', " 
+                              + " creditbal as 'Current Score', " 
+                              + " (select ifnull(sum(amount),0) from tbldeposits where accountid=a.accountid and confirmed=1 and cancelled=0) as 'Total Deposit', " 
+                              + " (select ifnull(sum(amount),0) from tblwithdrawal where accountid=a.accountid and confirmed=1 and cancelled=0) as 'Total Withdraw', " 
                               + " date_format(dateregistered,'%Y-%m-%d %r') as 'Date Registered', " 
+                              + " reference as 'Signup Reference', " 
                               + " date_format(lastlogindate,'%Y-%m-%d %r') as 'Last Date Login' " 
                               + " from tblsubscriber as a where deleted = 0 and masteragentid = (select ownersaccountid from tbloperator where companyid='"+operatorid+"') " 
                               + " and operatorid='"+operatorid+"' "
@@ -515,42 +506,12 @@ try{
                               + " select 2, 'Fullname', 'left'  union all "
                               + " select 3, 'Username', 'center'  union all "
                               + " select 4, 'Mobile Number', 'center'  union all "
-                              + " select 5, 'Address', 'left'  union all "
-                              + " select 6, 'Score', 'right'  union all "
-                              + " select 7, 'Date Registered', 'center'  union all "
-                              + " select 8, 'Last Date Login', 'center' "
-                              + "");
-      return mainObj;
- }
- %>
-<%!public JSONObject game_streak_report(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
-      mainObj = DBtoJson(mainObj, "report", "select accountid, " 
-                              + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
-                              + " accountid as 'Account ID', " 
-                              + " fullname as 'Fullname', " 
-                              + " username as 'Username', " 
-                              + " mobilenumber as 'Mobile Number', " 
-                              + " creditbal as 'Score', " 
-                              + " game_win_streak_count as '5 Win Streak', " 
-                              + " game_lose_streak_count as '5 Lose Streak', " 
-                              + " date_format(game_streak_update,'%Y-%m-%d %r') as 'Date Updated', " 
-                              + " date_format(lastlogindate,'%Y-%m-%d %r') as 'Last Date Login' " 
-                              + " from tblsubscriber as a where deleted = 0 and (game_win_streak_count > 0 or game_lose_streak_count > 0) " 
-                              + " and masteragentid <> (select dummy_master from tbloperator where companyid='"+operatorid+"') "
-                              + " and operatorid='"+operatorid+"' "
-                              + (range ? " and date_format(game_streak_update,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
-                              + " order by game_streak_update asc");
-
-      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
-                              + " select 1, 'Account ID', 'center' union all "
-                              + " select 2, 'Fullname', 'left'  union all "
-                              + " select 3, 'Username', 'center'  union all "
-                              + " select 4, 'Mobile Number', 'center'  union all "
-                              + " select 5, 'Score', 'right'  union all "
-                              + " select 6, '5 Win Streak', 'center'  union all "
-                              + " select 7, '5 Lose Streak', 'center'  union all "
-                              + " select 8, 'Date Updated', 'center'  union all "
-                              + " select 9, 'Last Date Login', 'center' "
+                              + " select 5, 'Current Score', 'right'  union all "
+                              + " select 6, 'Total Deposit', 'right'  union all "
+                              + " select 7, 'Total Withdraw', 'right'  union all "
+                              + " select 8, 'Date Registered', 'center'  union all "
+                              + " select 9, 'Signup Reference', 'left'  union all "
+                              + " select 10, 'Last Date Login', 'center' "
                               + "");
       return mainObj;
  }
@@ -565,7 +526,7 @@ try{
                               + " (select fullname from tblsubscriber where accountid=a.masteragentid) as 'Master Agent', "
                               + " (select fullname from tblsubscriber where accountid=a.agentid) as 'Agent', "
                               + " mobilenumber as 'Mobile Number', " 
-                              + " creditbal as 'Score', " 
+                              + " creditbal as 'Current Score', " 
                               + " date_format(dateregistered,'%Y-%m-%d %r') as 'Date Registered', " 
                               + " reference as 'Signup Reference', " 
                               + " date_format(lastlogindate,'%Y-%m-%d %r') as 'Last Date Login' " 
@@ -580,7 +541,7 @@ try{
                               + " select 4, 'Master Agent', 'left'  union all "
                               + " select 5, 'Agent', 'left'  union all "
                               + " select 6, 'Mobile Number', 'center'  union all "
-                              + " select 7, 'Score', 'right'  union all "
+                              + " select 7, 'Current Score', 'right'  union all "
                               + " select 8, 'Date Registered', 'center'  union all "
                               + " select 9, 'Signup Reference', 'left'  union all "
                               + " select 10, 'Last Date Login', 'center' "

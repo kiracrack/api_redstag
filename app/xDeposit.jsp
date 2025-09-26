@@ -117,63 +117,63 @@ try{
 
         }else if(info.iscashaccount && info.rebate_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on rebate bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on rebate bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
         }else if(info.iscashaccount && info.midnight_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on midnight bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on midnight bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
         }else if(info.iscashaccount && info.welcome_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on welcome bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on welcome bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
         }else if(info.iscashaccount && info.daily_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on daily bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on daily bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.socialmedia_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on social media account mode. deposit is not available");
+            mainObj.put("message", "You have entered on social media account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.winstrike_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on win strike account mode. deposit is not available");
+            mainObj.put("message", "You have entered on win strike account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
         }else if(info.iscashaccount && info.weekly_loss_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on weekly loss rebate account mode. deposit is not available");
+            mainObj.put("message", "You have entered on weekly loss rebate account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.special_bonus_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on special bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on special bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
         }else if(info.iscashaccount && info.custom_promo_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", info.custom_promo_name +" enabled. deposit is not available");
+            mainObj.put("message", info.custom_promo_name +" enabled. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
@@ -257,42 +257,42 @@ try{
 
         }else if(info.iscashaccount && info.rebate_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on rebate bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on rebate bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
         }else if(info.iscashaccount && info.midnight_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on midnight bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on midnight bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.welcome_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on welcome bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on welcome bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.daily_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on daily bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on daily bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
 
          }else if(info.iscashaccount && info.socialmedia_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on social media account mode. deposit is not available");
+            mainObj.put("message", "You have entered on social media account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.winstrike_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on win strike account mode. deposit is not available");
+            mainObj.put("message", "You have entered on win strike account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
@@ -306,28 +306,28 @@ try{
 
         }else if(!deposit_type.equals("TELCO") && info.telco_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on telco credit account mode. deposit is not available for banking. Please withdraw your exisiting telco credit before create new deposit");
+            mainObj.put("message", "You have entered on telco credit account mode. Clear your balance to proceed new deposit for banking. Please withdraw your exisiting telco credit before create new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.weekly_loss_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on weekly loss rebate account mode. deposit is not available");
+            mainObj.put("message", "You have entered on weekly loss rebate account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.special_bonus_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on special bonus account mode. deposit is not available");
+            mainObj.put("message", "You have entered on special bonus account mode. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         
         }else if(info.iscashaccount && info.custom_promo_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", info.custom_promo_name +" enabled. deposit is not available");
+            mainObj.put("message", info.custom_promo_name +" enabled. Clear your balance to proceed new deposit");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
