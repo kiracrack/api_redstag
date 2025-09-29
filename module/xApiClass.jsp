@@ -112,7 +112,7 @@
         
         obj.put("current_week", current_week);
         obj.put("total_player", player.total_player);
-        obj.put("total_credit", credit.total_credit);
+        obj.put("total_score", credit.total_score);
         obj.put("winloss_current", currentWinloss.winloss);
         obj.put("winloss_lastweek", previousWinLoss.winloss);
         
@@ -142,13 +142,13 @@
 }%>
 
  <%!public class OperatorCreditTransaction{
-    public double total_credit;
+    public double total_score;
     public OperatorCreditTransaction(String agentid, String datefrom, String dateto){
         try{
             ResultSet rst = null; 
             rst =  SelectQuery("SELECT sum(amount) as total FROM `tblcredittransaction` where agentid='"+agentid+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
             while(rst.next()){
-                this.total_credit = rst.getDouble("total");  
+                this.total_score = rst.getDouble("total");  
             }
             rst.close();
         }catch(SQLException e){

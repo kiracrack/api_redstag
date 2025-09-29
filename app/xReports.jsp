@@ -97,11 +97,11 @@ try{
         out.print(mainObj);
 
     /* api admin functions */
-     }else if(x.equals("api_credit_transaction")){
+     }else if(x.equals("api_score_report")){
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
 
-        mainObj = api_credit_transaction(mainObj, datefrom, dateto);
+        mainObj = api_score_report(mainObj, userid, datefrom, dateto);
         mainObj.put("status", "OK");
         mainObj.put("message", "response valid");
         out.print(mainObj);
@@ -115,24 +115,7 @@ try{
         mainObj.put("message", "data synchronized");
         out.print(mainObj);
 
-    }else if(x.equals("api_cash_in_report")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-
-        mainObj = api_cash_transaction_report(mainObj, "ADD", userid, datefrom, dateto);
-        mainObj.put("status", "OK");
-        mainObj.put("message", "data synchronized");
-        out.print(mainObj);
-
-    }else if(x.equals("api_cash_out_report")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-
-        mainObj = api_cash_transaction_report(mainObj, "DEDUCT", userid, datefrom, dateto);
-        mainObj.put("status", "OK");
-        mainObj.put("message", "data synchronized");
-        out.print(mainObj);
-
+ 
     /* api admin functions */
         
     }else{

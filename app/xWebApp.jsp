@@ -256,12 +256,12 @@ try{
         mainObj.put("message", "data synchronized");
         out.print(mainObj);
 
-     }else if(x.equals("api_credit_transaction")){
+     }else if(x.equals("api_score_report")){
         DateWeekly week = new DateWeekly();
         String datefrom = week.current_date;
         String dateto = week.current_date;
         
-        mainObj = api_credit_transaction(mainObj, datefrom, dateto);
+        mainObj = api_score_report(mainObj, userid, datefrom, dateto);
         mainObj.put("status", "OK");
         mainObj.put("message", "response valid");
         out.print(mainObj);

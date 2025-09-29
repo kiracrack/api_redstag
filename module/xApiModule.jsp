@@ -20,18 +20,24 @@
       return mainObj;
  }%>
 
-<%!public JSONObject api_credit_transaction(JSONObject mainObj,  String datefrom, String dateto) {
-    mainObj = DBtoJson(mainObj, "credit_transaction", "SELECT  *,accountid, (select api_identifier from tblsubscriber where accountid=a.accountid) as api_id, (select fullname from tblsubscriber where accountid=a.accountid) as fullname, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time' FROM tblcredittransaction as a where date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
+<%!public JSONObject api_score_report(JSONObject mainObj, String agentid, String datefrom, String dateto) {
+    mainObj = DBtoJson(mainObj, "score_report", "SELECT  *,accountid, (select api_identifier from tblsubscriber where accountid=a.accountid) as api_id, (select fullname from tblsubscriber where accountid=a.accountid) as fullname, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time' FROM tblcredittransaction as a where agentid='"+agentid+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
     return mainObj;
   }
  %>
 
-<%!public JSONObject api_bet_history(JSONObject mainObj, String userid, String datefrom, String dateto) {
-      mainObj = DBtoJson(mainObj, "bet_history", "select date_format(datetrn, '%m/%d/%y') as 'date', result, date_format(datetrn, '%r') as 'time', fightnumber, transactionno, bet_amount, "
-            + "  eventid, arena, if(bet_choice='M','Meron',if(bet_choice='W','Wala', 'Draw')) as bet_choice, odd, concat(odd,'%') as odds, winloss from " 
-            + " (SELECT fightnumber, transactionno, bet_amount, datetrn, eventid, (select arenaname from tblarena where arenaid=a.arenaid) as arena, bet_choice, odd, if(result='','Cancelled', if(result='M','Meron',if(result='W','Wala', 'Draw'))) as result, " 
+<%!public JSONObject api_player_accounts(JSONObject mainObj, String agentid, String datefrom, String dateto) {
+    mainObj = DBtoJson(mainObj, "player_accounts", "SELECT  accountid, fullname, creditbal, api_identifier as 'api_id', ipaddress, blocked,dateblocked,  dateregistered, lastlogindate FROM tblsubscriber as a where agentid='"+agentid+"' and date_format(dateregistered, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
+    return mainObj;
+  }
+ %>
+
+<%!public JSONObject api_player_bets(JSONObject mainObj, String agentid, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "player_bets", "select accountid, (select api_identifier from tblsubscriber where accountid=x.accountid) as api_id, (select fullname from tblsubscriber where accountid=x.accountid) as fullname, date_format(datetrn, '%Y-%m-%d') as 'date', result, date_format(datetrn, '%r') as 'time', fightnumber, transactionno, bet_amount, "
+            + "  eventid, arena, if(bet_choice='M','Meron',if(bet_choice='W','Wala', 'Draw')) as bet_choice, odd,  winloss from " 
+            + " (SELECT accountid, fightnumber, transactionno, bet_amount, datetrn, eventid, (select arenaname from tblarena where arenaid=a.arenaid) as arena, bet_choice, odd, if(result='','Cancelled', if(result='M','Meron',if(result='W','Wala', 'Draw'))) as result, " 
             + "  ROUND(win_amount - lose_amount,2) as winloss "
-            + " FROM tblfightbets2 as a where accountid='"+userid+"') as x where date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by datetrn asc");
+            + " FROM tblfightbets2 as a where agentid='"+agentid+"') as x where date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by datetrn asc");
       return mainObj;
  }%>
 
@@ -65,6 +71,12 @@
   }
 %>
 
+
+<%!public void DeniedAddress(String key, String referer) {
+    ExecuteQuery("insert into tblapideniedaccess set apikey='"+key+"', domain='"+referer+"',datelogs=current_timestamp");
+  }
+%>
+ 
 <%!public void CreateNewAccount(String key, String userid) {
     OperatorInfoApi op = new OperatorInfoApi(key);
     String newid = getOperatorAccount(op.operatorid, "series_subscriber");

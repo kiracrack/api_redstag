@@ -234,13 +234,7 @@ try{
     return blocked;
   }
 %>
-
-
-<%!public void DeniedAddress(String key, String referer) {
-    ExecuteQuery("insert into tblapideniedaccess set apikey='"+key+"', domain='"+referer+"',datelogs=current_timestamp");
-  }
-%>
-
+ 
 <%!public JSONObject api_score_record(JSONObject mainObj, String userid, String datefrom, String dateto) {
       mainObj = DBtoJson(mainObj, "data", "select id, transactionno, date_format(datetrn, '%Y-%m-%d') as 'date', date_format(datetrn, '%r') as 'time', trntype, amount from tblcreditloadlogs where accountid='"+userid+"'  and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by id asc ");
       return mainObj;
