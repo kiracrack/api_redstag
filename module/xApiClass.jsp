@@ -95,8 +95,11 @@
 
         OperatorWinlossApi currentWinloss = new OperatorWinlossApi(agentid, dw.current_week_from, dw.current_week_to);
         OperatorWinlossApi previousWinLoss = new OperatorWinlossApi(agentid, dw.prev_week_from, dw.prev_week_to);
- 
-        OperatorCashTransactionLogs cashTrn = new OperatorCashTransactionLogs(agentid, dw.current_week_from, dw.current_week_to);
+
+        OperatorPlayers player = new OperatorPlayers(agentid);
+
+        OperatorCreditTransaction credit = new OperatorCreditTransaction(agentid, dw.current_week_from, dw.current_week_to);
+
         String month_from = ConvertDateFormat(dw.current_week_from,"yyyy-MM-dd", "MMMM");
         String month_to = ConvertDateFormat(dw.current_week_to,"yyyy-MM-dd", "MMMM");
 
@@ -108,14 +111,12 @@
         }
         
         obj.put("current_week", current_week);
+        obj.put("total_player", player.total_player);
+        obj.put("total_credit", credit.total_credit);
         obj.put("winloss_current", currentWinloss.winloss);
         obj.put("winloss_lastweek", previousWinLoss.winloss);
         
-        obj.put("total_cash_in", cashTrn.total_cash_in);
-        obj.put("count_cash_in", cashTrn.count_cash_in);
-        obj.put("total_cash_out", cashTrn.total_cash_out);
-        obj.put("count_cash_out", cashTrn.count_cash_out);
-
+ 
         JSONArray objarray =new JSONArray();
         objarray.add(obj);
         
@@ -123,6 +124,38 @@
         return mainObj;
   }
  %>
+
+ <%!public class OperatorPlayers{
+    public int total_player;
+    public OperatorPlayers(String agentid){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("SELECT count(*) as cnt  FROM `tblsubscriber` where agentid='"+agentid+"' and blocked=0 and deleted=0");
+            while(rst.next()){
+                this.total_player = rst.getInt("cnt");  
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-operator-api-player",e.toString());
+        }
+    }
+}%>
+
+ <%!public class OperatorCreditTransaction{
+    public double total_credit;
+    public OperatorCreditTransaction(String agentid, String datefrom, String dateto){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("SELECT sum(amount) as total FROM `tblcredittransaction` where agentid='"+agentid+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
+            while(rst.next()){
+                this.total_credit = rst.getDouble("total");  
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-operator-api-credit-transaction",e.toString());
+        }
+    }
+}%>
 
  <%!public class OperatorCashTransactionLogs{
     public double total_cash_in, total_cash_out;

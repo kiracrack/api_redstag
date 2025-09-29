@@ -8,6 +8,8 @@
 <%@ include file="../module/xGameModule.jsp" %>
 <%@ include file="../module/xCasinoModule.jsp" %>
 <%@ include file="../module/xCasinoClass.jsp" %>
+<%@ include file="../module/xApiModule.jsp" %>
+<%@ include file="../module/xApiClass.jsp" %>
 <%@ include file="../module/xPusher.jsp" %>
 
 <%
@@ -17,7 +19,7 @@ try{
     String x = Decrypt(request.getParameter("x"));
     String userid = request.getParameter("userid");
     String sessionid = request.getParameter("sessionid");
-
+ 
     if(x.isEmpty() || userid.isEmpty() || (sessionid.isEmpty() && !isAllowedMultiSession(userid))){
         mainObj.put("status", "ERROR");
         mainObj.put("message","request not valid");
@@ -93,6 +95,45 @@ try{
         mainObj = FetchCurrentBets(mainObj, fightkey, operatorid);
         mainObj.put("message","request returned valid");
         out.print(mainObj);
+
+    /* api admin functions */
+     }else if(x.equals("api_credit_transaction")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_credit_transaction(mainObj, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "response valid");
+        out.print(mainObj);
+
+    }else if(x.equals("api_winloss_report")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_winloss_report(mainObj, userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_cash_in_report")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_cash_transaction_report(mainObj, "ADD", userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_cash_out_report")){
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj = api_cash_transaction_report(mainObj, "DEDUCT", userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    /* api admin functions */
         
     }else{
         mainObj.put("status", "ERROR");

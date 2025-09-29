@@ -8,29 +8,20 @@
   }
  %>
 
-<%!public JSONObject api_player_accounts(JSONObject mainObj, String agentid, String datefrom, String dateto) {
-      mainObj = DBtoJson(mainObj, "data", "select accountid, api_identifier as 'identifier', creditbal as score, fullname as accountname, ifnull(date_format(lastlogindate,'%Y-%m-%d'),'') as datelogin, ifnull(date_format(lastlogindate,'%r'),'') as timelogin, " 
-                    + " date_format(dateregistered,'%Y-%m-%d') as datecreated, date_format(dateregistered,'%r') as timecreated, "
-                    + " blocked, date_format(dateblocked,'%Y-%m-%d') as dateblocked, date_format(dateblocked,'%r') as timeblocked "
-                    + " from tblsubscriber where agentid='"+agentid+"'  and date_format(lastlogindate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by lastlogindate asc");
-      return mainObj;
- }
- %>
-
 <%!public JSONObject api_winloss_report(JSONObject mainObj, String agentid, String datefrom, String dateto) {
-      mainObj = DBtoJson(mainObj, "data", "select * from (SELECT accountid, display_name, group_concat(distinct(select arenaname from tblarena where arenaid=a.arenaid)) as arenaname, "
-            + " (select api_identifier from tblsubscriber where accountid=a.accountid) as identifier, (select creditbal from tblsubscriber where accountid=a.accountid) as creditbal, ROUND(sum(win_amount) - sum(lose_amount),2) as winloss "
+      mainObj = DBtoJson(mainObj, "winloss_report", "select * from (SELECT accountid, (select fullname from tblsubscriber where accountid=a.accountid) as fullname, group_concat(distinct(select arenaname from tblarena where arenaid=a.arenaid)) as arenaname, "
+            + " (select api_identifier from tblsubscriber where accountid=a.accountid) as api_id, (select creditbal from tblsubscriber where accountid=a.accountid) as creditbal, ROUND(sum(win_amount) - sum(lose_amount),2) as winloss "
             + " FROM tblfightbets2 as a where agentid='"+agentid+"' and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' group by accountid) as x order by winloss asc");
       return mainObj;
  }%>
 
 <%!public JSONObject api_cash_transaction_report(JSONObject mainObj, String trntype, String agentid, String datefrom, String dateto) {
-      mainObj = DBtoJson(mainObj, "data", "SELECT accountid, fullname, transactionno, (select api_identifier from tblsubscriber where accountid=a.accountid) as identifier, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time', amount from `tblcreditloadlogs` as a where agentid='"+agentid+"' and trntype='"+trntype+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by datetrn asc");
+      mainObj = DBtoJson(mainObj, "cash_transaction", "SELECT accountid, fullname, transactionno, (select api_identifier from tblsubscriber where accountid=a.accountid) as identifier, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time', amount from `tblcreditloadlogs` as a where agentid='"+agentid+"' and trntype='"+trntype+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' order by datetrn asc");
       return mainObj;
  }%>
 
-<%!public JSONObject api_credit_transaction(JSONObject mainObj, String accountid, String datefrom, String dateto) {
-    mainObj = DBtoJson(mainObj, "credit_transaction", "SELECT  *, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time' FROM tblcredittransaction as a where accountid='"+accountid+"' and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
+<%!public JSONObject api_credit_transaction(JSONObject mainObj,  String datefrom, String dateto) {
+    mainObj = DBtoJson(mainObj, "credit_transaction", "SELECT  *,accountid, (select api_identifier from tblsubscriber where accountid=a.accountid) as api_id, (select fullname from tblsubscriber where accountid=a.accountid) as fullname, date_format(datetrn, '%m/%d/%y') as 'date', date_format(datetrn, '%r') as 'time' FROM tblcredittransaction as a where date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "';");
     return mainObj;
   }
  %>
@@ -97,11 +88,11 @@
   }
  %>
 
-<%!public void ExecuteLogTransaction(String accountid, String agentid, String sessionid, String appreference, String transactionno, String description, String betinfo, double amount, double winloss){
-    if(!isTransactionFound(accountid, sessionid, appreference, transactionno, description, amount, winloss)) 
-    ExecuteLedger("insert into tblcredittransaction set accountid='"+accountid+"', agentid='"+agentid+"', sessionid='"+sessionid+"',appreference='"+appreference+"',transactionno='"+transactionno+"',description='"+rchar(description)+"', betinfo='"+betinfo+"', amount='"+amount+"',winloss='"+winloss+"',datetrn=current_timestamp");
+<%!public void ExecuteLogTransaction(String accountid, String agentid, String sessionid, String appreference, String transactionno, String description, double amount){
+    if(!isTransactionFound(accountid, sessionid, appreference, transactionno, description, amount)) 
+    ExecuteLedger("insert into tblcredittransaction set accountid='"+accountid+"', agentid='"+agentid+"', sessionid='"+sessionid+"',appreference='"+appreference+"',transactionno='"+transactionno+"',description='"+rchar(description)+"', amount='"+amount+"', datetrn=current_timestamp");
 }%>
 
-<%!public boolean isTransactionFound(String accountid, String sessionid, String appreference, String transactionno, String description, double amount, double winloss){
-    return CountQry("tblcredittransaction", "accountid='"+accountid+"' and sessionid='"+sessionid+"' and appreference='"+appreference+"' and transactionno='"+transactionno+"' and description='"+rchar(description)+"' and amount='"+amount+"' and winloss='"+winloss+"'") > 0;
+<%!public boolean isTransactionFound(String accountid, String sessionid, String appreference, String transactionno, String description, double amount){
+    return CountQry("tblcredittransaction", "accountid='"+accountid+"' and sessionid='"+sessionid+"' and appreference='"+appreference+"' and transactionno='"+transactionno+"' and description='"+rchar(description)+"' and amount='"+amount+"'") > 0;
 }%>

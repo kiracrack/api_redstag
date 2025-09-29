@@ -128,7 +128,7 @@ try{
         } 
 
         String transactionno = getOperatorSeriesID(info.operatorid,"series_credit_transfer");
-        ExecuteLogTransaction(info.accountid, info.agentid, info.sessionid, reference, transactionno, "wallet score added", "", amount, 0);
+        ExecuteLogTransaction(info.accountid, info.agentid, info.sessionid, reference, transactionno, "wallet score added", amount);
         ExecuteSetScore(info.operatorid, info.sessionid, reference, info.accountid, info.fullname, "ADD", amount, "wallet score added", info.accountid);
         
         AccountBalance b = new AccountBalance(info.accountid);
@@ -170,7 +170,7 @@ try{
 
         String description = "wallet score removed";
         String transactionno = getOperatorSeriesID(info.operatorid,"series_credit_transfer");
-        ExecuteLogTransaction(info.accountid, info.agentid, info.sessionid, reference, transactionno, description, "", -amount, 0);
+        ExecuteLogTransaction(info.accountid, info.agentid, info.sessionid, reference, transactionno, description,-amount);
         ExecuteSetScore(info.operatorid, info.sessionid, reference, info.accountid, info.fullname, "DEDUCT", amount, description, info.accountid);
         
         AccountBalance b = new AccountBalance(info.accountid);

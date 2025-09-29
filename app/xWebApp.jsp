@@ -212,48 +212,34 @@ try{
         out.print(mainObj);
 
     /* api admin functions */
-     }else if(x.equals("api_credit_transaction")){
-        String accountid = request.getParameter("accountid");
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-        
-        mainObj = api_credit_transaction(mainObj, accountid, datefrom, dateto);
-        mainObj.put("status", "OK");
-        mainObj.put("message", "response valid");
-        out.print(mainObj);
-
-    }else if(x.equals("bet_history") || x.equals("player_bet_history")){
-        String accountid = request.getParameter("accountid");
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-
-        mainObj = api_bet_history(mainObj, accountid, datefrom, dateto);
-        mainObj.put("status", "OK");
-        mainObj.put("accountid", accountid);
-        mainObj.put("message", "data synchronized");
-        out.print(mainObj);
-
-    }else if(x.equals("api_player_account")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
-
-        mainObj.put("status", "OK");
-        mainObj = api_player_accounts(mainObj, userid, datefrom, dateto);
-        mainObj.put("message", "data synchronized");
-        out.print(mainObj);
-
-    }else if(x.equals("api_winloss_report")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
+    }else if(x.equals("api_winloss_this_week")){
+        DateWeekly week = new DateWeekly();
+        String datefrom = week.current_week_from;
+        String dateto = week.current_week_to;
 
         mainObj = api_winloss_report(mainObj, userid, datefrom, dateto);
         mainObj.put("status", "OK");
+        mainObj.put("datefrom", datefrom);
+        mainObj.put("dateto", dateto);
+        mainObj.put("message", "data synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("api_winloss_last_week")){
+        DateWeekly week = new DateWeekly();
+        String datefrom = week.prev_week_from;
+        String dateto = week.prev_week_to;
+
+        mainObj = api_winloss_report(mainObj, userid, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("datefrom", datefrom);
+        mainObj.put("dateto", dateto);
         mainObj.put("message", "data synchronized");
         out.print(mainObj);
 
     }else if(x.equals("api_cash_in_report")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
+        DateWeekly week = new DateWeekly();
+        String datefrom = week.current_date;
+        String dateto = week.current_date;
 
         mainObj = api_cash_transaction_report(mainObj, "ADD", userid, datefrom, dateto);
         mainObj.put("status", "OK");
@@ -261,14 +247,25 @@ try{
         out.print(mainObj);
 
     }else if(x.equals("api_cash_out_report")){
-        String datefrom = request.getParameter("datefrom");
-        String dateto = request.getParameter("dateto");
+        DateWeekly week = new DateWeekly();
+        String datefrom = week.current_date;
+        String dateto = week.current_date;
 
         mainObj = api_cash_transaction_report(mainObj, "DEDUCT", userid, datefrom, dateto);
         mainObj.put("status", "OK");
         mainObj.put("message", "data synchronized");
         out.print(mainObj);
 
+     }else if(x.equals("api_credit_transaction")){
+        DateWeekly week = new DateWeekly();
+        String datefrom = week.current_date;
+        String dateto = week.current_date;
+        
+        mainObj = api_credit_transaction(mainObj, datefrom, dateto);
+        mainObj.put("status", "OK");
+        mainObj.put("message", "response valid");
+        out.print(mainObj);
+        
     /* api admin functions */
 
     }else{
