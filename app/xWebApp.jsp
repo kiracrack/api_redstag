@@ -85,7 +85,6 @@ try{
     }else if(x.equals("event")){
         String eventid = request.getParameter("eventid");
 
-        logError("api-x-eventid", eventid);
         EventInfo event = new EventInfo(eventid, false);
         AccountInfo info = new AccountInfo(userid);
         ArenaInfo arena = new ArenaInfo(event.arenaid);

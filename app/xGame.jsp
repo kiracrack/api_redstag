@@ -62,7 +62,6 @@ try{
             return;
         }
 
-        
         OperatorInfo op = new OperatorInfo(info.operatorid);
         boolean test = (op.testaccountid.equals(info.masteragentid) ? true : false);
 
@@ -91,10 +90,12 @@ try{
         os.write(outputBytes);
 
         BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        String str_aray = ReadAllLines(br); 
+        LogCallback(x, "OpenGame",  str_aray);
 
         JSONParser parser = new JSONParser();
         JSONArray content = new JSONArray();
-        JSONObject json = (JSONObject) parser.parse(br.readLine());
+        JSONObject json = (JSONObject) parser.parse(str_aray);
         
        
         String status = json.get("status").toString();
