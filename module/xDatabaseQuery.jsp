@@ -71,7 +71,7 @@ public String sqlNewAccountQuery = "select *, date_format(dateregister, '%M %d, 
             + " from (SELECT a.agentid, a.creditbal, a.isagent,a.masteragentid, a.masteragent, a.accountid, a.fullname,  "
             + " sum(ifnull(if(cancelled,0,win_amount),0))-sum(ifnull(if(cancelled,0,lose_amount),0)) as total, (select count(*) from tblsubscriber as d where d.agentid=a.accountid) as downline "
             + " FROM tblsubscriber as a left join tblfightbets2 as b on a.accountid=b.accountid and "
-            + " date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' and dummy=0 and banker=0 and cancelled=0 where "+condition+" group by accountid) as x " 
+            + " date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' and dummy=0 and banker=0 and promo=0 and cancelled=0 where "+condition+" group by accountid) as x " 
             + " where if(isagent or masteragent or downline > 0, total is not null , total<>0) order by accountid asc";
 }
 %>
@@ -81,8 +81,8 @@ public String sqlNewAccountQuery = "select *, date_format(dateregister, '%M %d, 
             + " from (SELECT a.agentid, a.creditbal, a.isagent,a.masteragentid, a.masteragent, a.accountid, a.fullname,  "
             + " ifnull(sum(winloss),0) as total, (select count(*) from tblsubscriber as d where d.agentid=a.accountid) as downline " 
             + " FROM tblsubscriber as a left join tblgamesummary as b on a.accountid=b.accountid and "
-            + " date_format(gamedate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' where "+condition+" group by accountid) as x " 
-            + " where if(isagent or masteragent or downline > 0, total is not null , total<>0) order by accountid asc";
+            + " date_format(gamedate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "' and b.promo=0 where "+condition+" group by accountid) as x " 
+            + " where if(isagent or masteragent or downline > 0, total is not null , total<>0)  order by accountid asc";
 }
 %>
 
@@ -94,8 +94,8 @@ public String sqlNewAccountQuery = "select *, date_format(dateregister, '%M %d, 
              + " when (cockfight+casino) >= 200000 then 1688 end,0) as bonus, current_date, "
              + " (select count(*) from tblbonus where accountid=x.accountid and bonuscode='turnover' and bonusdate=current_date) as claimed "
              + " from (select accountid, "
-             + " (SELECT ifnull(sum(if(cancelled,0,bet_amount)),0) FROM `tblfightbets2` where accountid=a.accountid and date_format(datetrn, '%Y-%m-%d')=current_date)  as cockfight, "
-             + " (select ifnull(sum(totalbets),0) from tblgamesummary where accountid=a.accountid and date_format(gamedate, '%Y-%m-%d')=current_date) as casino from tblsubscriber as a where accountid='"+userid+"') as x"; 
+             + " (SELECT ifnull(sum(if(cancelled,0,bet_amount)),0) FROM `tblfightbets2` where promo=0 and accountid=a.accountid and date_format(datetrn, '%Y-%m-%d')=current_date)  as cockfight, "
+             + " (select ifnull(sum(totalbets),0) from tblgamesummary where promo=0 and accountid=a.accountid and date_format(gamedate, '%Y-%m-%d')=current_date) as casino from tblsubscriber as a where accountid='"+userid+"') as x"; 
 }
 %>
 

@@ -1,4 +1,4 @@
-<%!public void ExecutePostBet(String platform, String eventid, String sessionid, String appreference, String operatorid, String userid, String bet_choice, double bet_amount, String ws_selection, boolean banker, boolean dummy, boolean test, String display_id, String display_name) {
+<%!public void ExecutePostBet(String platform, String eventid, String sessionid, String appreference, String operatorid, String userid, String bet_choice, double bet_amount, String ws_selection, boolean banker, boolean dummy, boolean test, boolean promo, String display_id, String display_name) {
     AccountInfo account = new AccountInfo(userid);
     EventInfo event = new EventInfo(eventid, false);
 
@@ -8,6 +8,7 @@
                             + " banker="+ banker +","
                             + " dummy="+ dummy +","
                             + " test="+ test +","
+                            + " promo="+ promo +","
                             + " display_id='"+ display_id +"',"
                             + " display_name='"+ rchar(display_name) +"',"
                             + " sessionid='"+sessionid+"', "
@@ -395,8 +396,8 @@
 
                 if(CountQry("tblfightbets", "fightkey='"+fightkey+"' and accountid='"+accountid+"'") > 0){
                     ExecuteQuery("DELETE FROM tblfightbetserror where fightkey='"+fightkey+"' and accountid='"+accountid+"';");
-                    ExecuteQuery("INSERT INTO tblfightbetserror (operatorid,accountid,banker,dummy,test,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason) " 
-                                + " SELECT operatorid,accountid,banker,dummy,test,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason FROM tblfightbets where arenaid='"+arenaid+"' and fightkey='"+fightkey+"' and accountid='"+accountid+"'");
+                    ExecuteQuery("INSERT INTO tblfightbetserror (operatorid,accountid,banker,dummy,test,promo,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason) " 
+                                + " SELECT operatorid,accountid,banker,dummy,test,promo,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason FROM tblfightbets where arenaid='"+arenaid+"' and fightkey='"+fightkey+"' and accountid='"+accountid+"'");
                     
                     ExecuteQuery("DELETE FROM tblfightbets where arenaid='"+arenaid+"' and fightkey='"+fightkey+"' and accountid='"+accountid+"';");
                 }

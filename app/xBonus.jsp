@@ -60,64 +60,8 @@ try{
         mainObj.put("message", "You have successfully claim your "+info.winstrike_type.toLowerCase()+" bonus! Congratulations");
         out.print(mainObj);
 
-    }else if(x.equals("claim_custom_bonus")){ 
-            String promocode = request.getParameter("promocode");
-            String appreference = request.getParameter("appreference");
-            PromotionInfo promo = new PromotionInfo(promocode);
-
-            if(isBalanceAvailable(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message","Please withdraw your credit balance in order to claim your bonus!");
-                mainObj.put("errorcode", "100");
-                out.print(mainObj);
-                return;
-
-            }else if(isTherePendingDeposit(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "Bonus cannot be claim due to pending deposit");
-                mainObj.put("errorcode", "100");
-                out.print(mainObj);
-                return;
-
-            }else if(isTherePendingWithdrawal(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "Bonus cannot be claim due to pending withdrawal!");
-                mainObj.put("errorcode", "100");
-                out.print(mainObj);
-                return;
-
-            }else if((info.rebate_enabled || info.midnight_enabled || info.welcome_enabled || info.daily_enabled || info.socialmedia_enabled 
-                || info.telco_enabled || info.weekly_loss_enabled || info.winstrike_enabled || info.special_bonus_enabled || info.custom_promo_enabled) && info.creditbal > 2){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You are currently promo actived!");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
-            }
-
-            double turnover = 0;
-            if(promo.fix_amount) turnover = promo.amount * promo.turnover;
-            else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
-
-            double bonus = 0;
-            if(promo.fix_amount) bonus = promo.amount;
-            else bonus = info.newdeposit * (promo.amount / 100);
-
-            bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
-            ClearExistingBonus(userid);
-            ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", dateclaimed=current_timestamp");
-            ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
-            ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
-            SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
-            
-            mainObj.put("status", "OK");
-            mainObj = api_account_info(mainObj, userid, false);
-            mainObj = api_custom_promo(mainObj, userid);
-            mainObj = api_promotion_list(mainObj, info.operatorid);
-            mainObj.put("message", "You have successfully claim your "+promo.title+"! Congratulations");
-            out.print(mainObj);
-
     }else{
+
         if(isBalanceAvailable(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message","Please withdraw your credit balance in order to claim your bonus!");
@@ -136,6 +80,13 @@ try{
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Bonus cannot be claim due to pending withdrawal!");
             mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }else if((info.ispromoactive ) && info.creditbal > 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You are currently promo actived!");
+            mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
         }
@@ -342,6 +293,33 @@ try{
             mainObj.put("message", "You have successfully claim your weekly loss rebate! Congratulations");
             out.print(mainObj);
 
+        }else if(x.equals("claim_custom_bonus")){
+            String promocode = request.getParameter("promocode");
+            String appreference = request.getParameter("appreference");
+            PromotionInfo promo = new PromotionInfo(promocode);
+ 
+            double turnover = 0;
+            if(promo.fix_amount) turnover = promo.amount * promo.turnover;
+            else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
+
+            double bonus = 0;
+            if(promo.fix_amount) bonus = promo.amount;
+            else bonus = info.newdeposit * (promo.amount / 100);
+
+            bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
+            ClearExistingBonus(userid);
+            ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", dateclaimed=current_timestamp");
+            ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
+            ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
+            SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
+            
+            mainObj.put("status", "OK");
+            mainObj = api_account_info(mainObj, userid, false);
+            mainObj = api_custom_promo(mainObj, userid);
+            mainObj = api_promotion_list(mainObj, info.operatorid);
+            mainObj.put("message", "You have successfully claim your "+promo.title+"! Congratulations");
+            out.print(mainObj);
+
         }else{
             mainObj.put("status", "ERROR");
             mainObj.put("message","request not valid");
@@ -358,16 +336,3 @@ try{
       logError("app-x-bonus",e.getMessage());
 }
 %>
-
-<%!public void ClearExistingBonus(String accountid){
-    AccountInfo info = new AccountInfo(accountid);
-    if(info.welcome_enabled) ExecuteQuery("UPDATE tblsubscriber set welcome_enabled=0, welcome_rate=0, welcome_bonus=0, welcome_amount=0 where accountid='"+accountid+"'");
-    if(info.daily_enabled) ExecuteQuery("UPDATE tblsubscriber set daily_enabled=0, daily_rate=0 where accountid='"+accountid+"'");
-    if(info.rebate_enabled) ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=0, bonus_amount=0, totaldeposit=0 where accountid='"+accountid+"'");
-    if(info.midnight_enabled) ExecuteQuery("UPDATE tblsubscriber set midnight_enabled=0, midnight_bonus=0, midnight_amount=0 where accountid='"+accountid+"'");
-    if(info.winstrike_enabled) ExecuteQuery("UPDATE tblsubscriber set winstrike_enabled=0, winstrike_selection='', winstrike_category='', winstrike_eventid='', winstrike_bonus=0 where accountid='"+accountid+"'");
-    if(info.socialmedia_enabled) ExecuteQuery("UPDATE tblsubscriber set socialmedia_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
-    if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
-    if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
-    if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
-}%>

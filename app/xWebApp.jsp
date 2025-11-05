@@ -94,7 +94,7 @@ try{
             if(!promo.cockfight){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message", "Your current promo is not allowed to play cockfight");
-                mainObj.put("errorcode", "400");
+                mainObj.put("errorcode", "forbiden");
                 out.print(mainObj);
                 return;
             }

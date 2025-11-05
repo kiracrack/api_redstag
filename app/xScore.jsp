@@ -59,67 +59,14 @@ try{
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
-        
-        }else if(info.iscashaccount && info.rebate_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is rebate bonus enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.midnight_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is midnight bonus enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.welcome_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is welcome bonus enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.daily_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is daily bonus enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-         }else if(info.iscashaccount && info.socialmedia_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is social media enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.winstrike_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is win strike enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.special_bonus_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "This account is spcial bonus enabled mode. Transfer score and deposit is not allowed");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.custom_promo_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on "+ info.custom_promo_name +" bonus account mode. deposit is not available");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
+         
         }
+        String transactionno = getOperatorSeriesID(info.operatorid,"series_credit_transfer");
 
-        String operatorid =  getOperatorid(userid);
-        String transactionno = getOperatorSeriesID(operatorid,"series_credit_transfer");
+        if(info.iscashaccount && info.ispromoactive && info.creditbal > 0){
+            ExecuteQuery("insert into tblbonusreturn set accountid='"+accountid+"', operatorid='"+info.operatorid+"', bonus_code='"+info.promo_active_code+"', bonus_type='"+info.promo_active_name+"', amount='"+info.creditbal+"',datetrn=current_timestamp");
+            LogLedger(accountid, sessionid, appreference, transactionno, "forfeited bonus credit", info.creditbal, 0, userid);
+        }
 
         String account_to_name = getAccountName(accountid);
         Boolean sent = LogLedger(userid, sessionid, appreference, transactionno,"transfer score to "+ FirstName(account_to_name) + (reference.length() > 0? " (" + reference.toLowerCase() + ")" : ""),amount,0, userid);
@@ -129,7 +76,7 @@ try{
         Boolean received = LogLedger(accountid,sessionid, appreference,transactionno, description, 0, amount, userid);
 
         if (sent && received){
-            ExecuteQuery("insert into tblcredittransfer set sessionid='"+sessionid+"', operatorid='"+operatorid+"', appreference='"+appreference+"', transactionno='"+transactionno+"', account_from='"+userid+"',account_to='"+accountid+"',amount='"+amount+"',reference='"+rchar(reference)+"',trnby='"+userid+"',datetrn=current_timestamp");
+            ExecuteQuery("insert into tblcredittransfer set sessionid='"+sessionid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', transactionno='"+transactionno+"', account_from='"+userid+"',account_to='"+accountid+"',amount='"+amount+"',reference='"+rchar(reference)+"',trnby='"+userid+"',datetrn=current_timestamp");
             if(mode.equals("direct") || mode.equals("request")){
                 if(mode.equals("request")){
                     ExecuteQuery("UPDATE tblcreditrequest set confirmed=1, dateconfirmed=current_timestamp where refno='"+refno+"'");
@@ -152,19 +99,11 @@ try{
                     out.print(mainObj);
                     return;
                 }
-                
+
                 ExecuteQuery("UPDATE tbldeposits set confirmed=1,dateconfirm=current_timestamp where refno='"+refno+"' and accountid='"+accountid+"'");
-                if(info.daily_enabled) ExecuteQuery("UPDATE tblsubscriber set daily_enabled=0, daily_rate=0 where accountid='"+accountid+"'");
-                if(info.welcome_enabled) ExecuteQuery("UPDATE tblsubscriber set welcome_enabled=0, welcome_rate=0, welcome_bonus=0, welcome_amount=0 where accountid='"+accountid+"'");
-                if(info.socialmedia_enabled) ExecuteQuery("UPDATE tblsubscriber set socialmedia_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
-                if(info.rebate_enabled) ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
-                if(info.midnight_enabled) ExecuteQuery("UPDATE tblsubscriber set midnight_enabled=0, midnight_bonus=0, midnight_amount=0 where accountid='"+accountid+"'");
-                if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
-                if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
-                if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
-                
+                ClearExistingBonus(accountid);
+
                 if(info.isonlineagent){
-                    
                     if(info.totaldeposit == 0){
                         ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                     }else{

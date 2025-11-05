@@ -34,7 +34,6 @@ try{
         mainObj.put("errorcode", "session");
 		out.print(mainObj);
         return;
-
     }
 
     if(x.equals("deposit_list_upline")){
@@ -115,69 +114,6 @@ try{
             out.print(mainObj);
             return;
 
-        }else if(info.iscashaccount && info.rebate_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on rebate bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.midnight_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on midnight bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.welcome_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on welcome bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.daily_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on daily bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.socialmedia_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on social media account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.winstrike_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on win strike account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.weekly_loss_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on weekly loss rebate account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.special_bonus_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on special bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.custom_promo_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", info.custom_promo_name +" enabled. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
         }
 
         mainObj.put("status", "OK");
@@ -185,6 +121,8 @@ try{
         mainObj = api_operator_bank(mainObj, info.operatorid);
         mainObj = api_account_info(mainObj, userid, false); 
         mainObj = api_promotion_status(mainObj, info.operatorid);
+        mainObj.put("promo_active", (info.iscashaccount && info.ispromoactive && info.creditbal > 0));
+        mainObj.put("promo_name", (info.iscashaccount && info.ispromoactive && info.creditbal > 0 ? info.promo_active_name : ""));
         mainObj.put("message","Result synchronized");
         out.print(mainObj);
 
@@ -247,55 +185,6 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
-            
-        }else if(info.iscashaccount && daily_bonus > 0  && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You must clear your credit balance when claiming daily bonus");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.rebate_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on rebate bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-        }else if(info.iscashaccount && info.midnight_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on midnight bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.welcome_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on welcome bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.daily_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on daily bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-
-         }else if(info.iscashaccount && info.socialmedia_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on social media account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.winstrike_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on win strike account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
 
         }else if(deposit_type.equals("TELCO") && !info.telco_enabled && info.creditbal > 1){
             mainObj.put("status", "ERROR");
@@ -310,28 +199,6 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
-        
-        }else if(info.iscashaccount && info.weekly_loss_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on weekly loss rebate account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.special_bonus_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You have entered on special bonus account mode. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
-        }else if(info.iscashaccount && info.custom_promo_enabled && info.creditbal > 1){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", info.custom_promo_name +" enabled. Clear your balance to proceed new deposit");
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            return;
-        
         
         }else if(!deposit_type.equals("TELCO") && welcome_bonus >= 50){
             if(welcome_bonus == 50 && Double.parseDouble(amount) < 10){

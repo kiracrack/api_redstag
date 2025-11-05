@@ -122,7 +122,7 @@
         JSONArray ja =new JSONArray();
         ResultSet rst = null;  
         rst =  SelectQuery("select *,if(!online, if(total < 0,round(total*0.11,2), total), total) as  winloss from (select masteragentid, (select fullname from tblsubscriber where accountid=a.masteragentid) as masteragentname, sum(win_amount) - sum(lose_amount) as total, if(masteragentid='101-00019',true,false) as online from "
-                                    + " tblfightbets2 as a where masteragentid in (select accountid from tblwinlossfilter) and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
+                                    + " tblfightbets2 as a where promo=0 and masteragentid in (select accountid from tblwinlossfilter) and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
         while(rst.next()){
             JSONObject obj =new JSONObject();
             obj.put("accountid", rst.getString("masteragentid"));

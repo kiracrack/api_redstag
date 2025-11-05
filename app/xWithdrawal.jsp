@@ -314,25 +314,31 @@ try{
 
         double cashout = 0;
         String promo_code = "";
+        String promo_name = "";
         if(info.telco_enabled){
             cashout = amount - (amount * 0.15);
-            promo_code = "telco deposit";
+            promo_code = "telco_deposit";
+            promo_name = "telco deposit";
 
         }else if(info.welcome_enabled){
             cashout = amount - info.welcome_bonus;
-             promo_code = "welcome bonus";
+             promo_code = "promo_welcome";
+             promo_name = "welcome bonus";
 
         }else if(info.daily_enabled){
             cashout = amount * (100 - info.daily_rate) / 100;
-            promo_code = info.daily_rate + "% daily bonus";
+            promo_code = "promo_daily";
+            promo_name = info.daily_rate + "% daily bonus";
 
         }else if(info.midnight_enabled){
             cashout = amount - info.midnight_bonus;
-            promo_code = "midnight bonus";
+            promo_code = "promo_midnight";
+            promo_name = "midnight bonus";
         
         }else if(info.socialmedia_enabled){
             cashout = 30;
-            promo_code = "social media bonus";
+            promo_code = "promo_socialmedia";
+            promo_name = "social media bonus";
 
          }else if(info.custom_promo_enabled && info.custom_promo_maxwd != 0){
             if(info.custom_promo_maxwd > 0){
@@ -340,7 +346,8 @@ try{
             }else{
                 cashout = (amount * info.custom_promo_maxwd);
             }
-            promo_code = info.custom_promo_name;
+            promo_code = info.custom_promo_code;
+            promo_name = info.custom_promo_name;
 
         }else{
             cashout = amount;
@@ -359,7 +366,8 @@ try{
                         + " amount='"+amount+"', "
                         + " deducted="+ (amount != cashout) +", "
                         + " cashout='"+cashout+"', "
-                        + " promo='"+promo_code+"', "
+                        + " promocode='"+promo_code+"', "
+                        + " promoname='"+promo_name+"', "
                         + " datetrn=current_timestamp");
 
         SendNewWithdrawalNotification(refno, agentid, userid, FormatCurrency(String.valueOf(cashout)));
@@ -401,17 +409,9 @@ try{
         SendRequestNotificationCount(userid);
         SendBankingNotification(refno, accountid, "withdrawal", "Good News!", "Your withdrawal was approved by your agent! Congratulation..", (withdraw.cashout > 0 ? withdraw.cashout : withdraw.amount));
         
-        AccountInfo info = new AccountInfo(accountid);
-        if(info.welcome_enabled) ExecuteQuery("UPDATE tblsubscriber set welcome_enabled=0, welcome_rate=0, welcome_bonus=0, welcome_amount=0 where accountid='"+accountid+"'");
-        if(info.daily_enabled) ExecuteQuery("UPDATE tblsubscriber set daily_enabled=0, daily_rate=0 where accountid='"+accountid+"'");
-        if(info.rebate_enabled) ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=0, bonus_amount=0, totaldeposit=0 where accountid='"+accountid+"'");
-        if(info.midnight_enabled) ExecuteQuery("UPDATE tblsubscriber set midnight_enabled=0, midnight_bonus=0, midnight_amount=0 where accountid='"+accountid+"'");
-        if(info.winstrike_enabled) ExecuteQuery("UPDATE tblsubscriber set winstrike_enabled=0, winstrike_selection='', winstrike_category='', winstrike_eventid='', winstrike_bonus=0 where accountid='"+accountid+"'");
-        if(info.socialmedia_enabled) ExecuteQuery("UPDATE tblsubscriber set socialmedia_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
-        if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
-        if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
-        if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
+        ClearExistingBonus(accountid);
 
+        AccountInfo info = new AccountInfo(accountid);
         if(info.telco_enabled){
             if(info.creditbal == withdraw.amount){
                 ExecuteQuery("UPDATE tblsubscriber set telco_enabled=0, telco_withdraw=0 where accountid='"+accountid+"'");

@@ -70,7 +70,7 @@ try{
 
         }
 
-        ExecutePostBet("android", eventid, sessionid, appreference, operatorid, accountid, bet_choice , Double.parseDouble(bet_amount), "",false, true, false, dummy_id, dummy_name);
+        ExecutePostBet("android", eventid, sessionid, appreference, operatorid, accountid, bet_choice , Double.parseDouble(bet_amount), "",false, true, false, false, dummy_id, dummy_name);
 
         mainObj.put("status", "OK");
         mainObj = CurrentBetSummary(mainObj, fightkey, operatorid);

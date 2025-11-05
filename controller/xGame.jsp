@@ -106,7 +106,7 @@ try{
                                 if(method % 2 == 0){
                                     RandomDummyAccount dummy = new RandomDummyAccount();
                                     ExecuteRecordAutoBet(eventid, operatorid, fightkey, fightnumber, totalBetMeron, totalBetWala, betDifference, "M", randomBet, betToAdd);
-                                    ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, operator.betwacherid, "M",Val(betToAdd), "", true, false, false, dummy.accountno, dummy.dummyname);
+                                    ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, operator.betwacherid, "M",Val(betToAdd), "", true, false, false, false, dummy.accountno, dummy.dummyname);
                                     betWatcherExecuted = true;
                                 }
                             }
@@ -124,7 +124,7 @@ try{
                                 if(method % 2 == 0){
                                     RandomDummyAccount dummy = new RandomDummyAccount();
                                     ExecuteRecordAutoBet(eventid, operatorid, fightkey, fightnumber, totalBetMeron, totalBetWala, betDifference, "W", randomBet, betToAdd);
-                                    ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, operator.betwacherid, "W", Val(betToAdd), "", true, false, false, dummy.accountno, dummy.dummyname);
+                                    ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, operator.betwacherid, "W", Val(betToAdd), "", true, false, false, false, dummy.accountno, dummy.dummyname);
                                     betWatcherExecuted = true;
                                 }
                             }
@@ -418,11 +418,11 @@ try{
         ExecuteResult("DELETE from tblfightbets2 where fightkey='"+fightkey+"'");
         ExecuteResult("DELETE from tblfightbetsdummy where fightkey='"+fightkey+"'");
 
-        ExecuteResult("INSERT INTO tblfightbets2 (operatorid,accountid,banker,dummy,test,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason) " 
-            + " SELECT operatorid,accountid,banker,dummy,test,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason FROM tblfightbets where fightkey='"+fightkey+"' and dummy=0");
+        ExecuteResult("INSERT INTO tblfightbets2 (operatorid,accountid,banker,dummy,test,promo,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason) " 
+            + " SELECT operatorid,accountid,banker,dummy,test,promo,display_id,display_name,sessionid,appreference,platform,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,ws_selection,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason FROM tblfightbets where fightkey='"+fightkey+"' and dummy=0");
 
-        ExecuteResult("INSERT INTO tblfightbetsdummy (operatorid,accountid,banker,dummy,test,display_id,display_name,sessionid,appreference,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason) " 
-            + " SELECT operatorid,accountid,banker,dummy,test,display_id,display_name,sessionid,appreference,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason FROM tblfightbets where fightkey='"+fightkey+"' and dummy=1");
+        ExecuteResult("INSERT INTO tblfightbetsdummy (operatorid,accountid,banker,dummy,test,promo,display_id,display_name,sessionid,appreference,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason) " 
+            + " SELECT operatorid,accountid,banker,dummy,test,promo,display_id,display_name,sessionid,appreference,masteragentid,agentid,arenaid,eventid,eventkey,fightkey,fightnumber,postingdate,transactionno,bet_choice,bet_amount,result,win,odd,win_amount,lose_amount,payout_amount,gros_ge_rate,gros_ge_total,gros_op_rate,gros_op_total,gros_be_rate,gros_be_total,prof_op_rate,prof_op_total,prof_ag_rate,prof_ag_total,datetrn,cancelled,cancelledreason FROM tblfightbets where fightkey='"+fightkey+"' and dummy=1");
     }
 }
 %>
@@ -443,7 +443,7 @@ try{
         if(finalBets.oddMeron > 1.7){
             double random = Double.parseDouble(RandomBetBalancer()) / 100;
             double balancer = finalBets.totalMeron * random;
-            ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, dummy_account_1, "M", Val(balancer), "", false, true, false, dummy.accountno, dummy.dummyname);
+            ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, dummy_account_1, "M", Val(balancer), "", false, true, false, false, dummy.accountno, dummy.dummyname);
         }
     }
 
@@ -451,7 +451,7 @@ try{
         if(finalBets.oddWala > 1.7){
             double random = Double.parseDouble(RandomBetBalancer()) / 100;
             double balancer = finalBets.totalWala * random;
-            ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, dummy_account_2, "W", Val(balancer), "", false, true, false, dummy.accountno, dummy.dummyname);
+            ExecutePostBet("android",eventid, sessionid, sessionid, operatorid, dummy_account_2, "W", Val(balancer), "", false, true, false, false, dummy.accountno, dummy.dummyname);
         }
     }
    

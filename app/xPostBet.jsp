@@ -59,6 +59,7 @@ try{
         
         OperatorInfo op = new OperatorInfo(operatorid);
         boolean test = (op.testaccountid.equals(masteragentid) ? true : false);
+        boolean promo = info.custom_promo_enabled;
 
         if(info.iscashaccount && info.rebate_enabled){
             mainObj.put("status", "ERROR");
@@ -177,7 +178,7 @@ try{
 
         if(!isLogLedgerFound(userid, sessionid, appreference, description, bet_amount, 0, userid)){
             LogLedgerTransaction(userid, sessionid, appreference, description, bet_amount, 0, userid);
-            ExecutePostBet(platform, eventid, sessionid, appreference, operatorid, userid, bet_choice, bet_amount, ws_selection, false, false, test, userid, display_name);
+            ExecutePostBet(platform, eventid, sessionid, appreference, operatorid, userid, bet_choice, bet_amount, ws_selection, false, false, test, promo, userid, display_name);
         }
 
         String creditbal = getLatestCreditBalance(userid);

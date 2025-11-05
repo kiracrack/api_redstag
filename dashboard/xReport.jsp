@@ -210,6 +210,39 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
+    }else if(x.equals("regular_bonus_withdrawal")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = regular_bonus_withdrawal(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+
+     }else if(x.equals("custom_bonus_withdrawal")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = custom_bonus_withdrawal(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("forfeited_bonus_credit")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = forfeited_bonus_credit(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+
         
 
     }else{
@@ -417,7 +450,7 @@ try{
                               + " amount as 'Amount Withdraw', " 
                               + " cashout as 'Net Cashout', " 
                               + " amount-cashout as 'Returned Bonus', " 
-                              + " promo as 'Promo', " 
+                              + " promoname as 'Promo', " 
                               + " note as 'Note', " 
                               + " (select fullname from tblsubscriber where accountid=a.agentid) as 'Agent', "
                               + " if(cancelled,'CANCELLED',if(confirmed,'COMPLETED','PENDING')) as 'Status', " 
@@ -692,7 +725,7 @@ try{
                               + " amount as 'Amount', " 
                               + " date_format(bonusdate,'%Y-%m-%d') as 'Bonus Date', "
                               + " date_format(dateclaimed,'%Y-%m-%d %r') as 'Date Claim'  " 
-                              + " from tblbonus as a where operatorid='"+operatorid+"'  "
+                              + " from tblbonus as a where operatorid='"+operatorid+"' and bonuscode not in (select promocode from tblpromotion where build_in=0) "
                               + (range ? " and date_format(dateclaimed,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : ""));
 
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
@@ -702,6 +735,101 @@ try{
                               + " select 4, 'Amount', 'right'  union all " 
                               + " select 5, 'Bonus Date', 'center'  union all "
                               + " select 6, 'Date Claim', 'center' "
+                              + "");
+      return mainObj;
+ }
+ %>
+
+ <%!public JSONObject regular_bonus_withdrawal(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "report", "select accountid, " 
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
+                              + " accountid as 'Account ID', "
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as 'Fullname', "
+                              + " (select Username from tblsubscriber where accountid=a.accountid) as 'Username', "
+                              + " refno as 'Withdrawal No', " 
+                              + " amount as 'Amount Withdraw', " 
+                              + " cashout as 'Net Cashout', " 
+                              + " amount-cashout as 'Returned Bonus', " 
+                              + " promoname as 'Promo', " 
+                              + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
+                              + " date_format(datetrn,'%r') as 'Time' "
+                              + " from tblwithdrawal as a where confirmed=1 and cancelled=0 and amount-cashout > 0 " 
+                              + " and promocode in (select promocode from tblpromotion where build_in=1) "
+                              + " and operatorid='"+operatorid+"' "
+                              + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                              + " order by id asc");
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Account ID', 'center' union all "
+                              + " select 2, 'Fullname', 'left'  union all "
+                              + " select 3, 'Username', 'center'  union all "
+                              + " select 4, 'Withdrawal No', 'center' union all "
+                              + " select 5, 'Amount Withdraw', 'right'  union all "
+                              + " select 6, 'Net Cashout', 'right'  union all "
+                              + " select 7, 'Returned Bonus', 'right'  union all "
+                              + " select 8, 'Promo', 'left'  union all "
+                              + " select 9, 'Date', 'center'  union all "
+                              + " select 10, 'Time', 'center' "
+                              + "");
+      return mainObj;
+ }
+ %>
+
+<%!public JSONObject custom_bonus_withdrawal(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "report", "select accountid, " 
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
+                              + " accountid as 'Account ID', "
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as 'Fullname', "
+                              + " (select Username from tblsubscriber where accountid=a.accountid) as 'Username', "
+                              + " refno as 'Withdrawal No', " 
+                              + " amount as 'Amount Withdraw', " 
+                              + " cashout as 'Net Cashout', " 
+                              + " promoname as 'Promo', " 
+                              + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
+                              + " date_format(datetrn,'%r') as 'Time' "
+                              + " from tblwithdrawal as a where confirmed=1 and cancelled=0 and amount-cashout > 0 " 
+                              + " and promocode in (select promocode from tblpromotion where build_in=0) "
+                              + " and operatorid='"+operatorid+"' "
+                              + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                              + " order by id asc");
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Account ID', 'center' union all "
+                              + " select 2, 'Fullname', 'left'  union all "
+                              + " select 3, 'Username', 'center'  union all "
+                              + " select 4, 'Withdrawal No', 'center' union all "
+                              + " select 5, 'Amount Withdraw', 'right'  union all "
+                              + " select 6, 'Net Cashout', 'right'  union all "
+                              + " select 7, 'Promo', 'left'  union all "
+                              + " select 8, 'Date', 'center'  union all "
+                              + " select 9, 'Time', 'center' "
+                              + "");
+      return mainObj;
+ }
+ %>
+
+ <%!public JSONObject forfeited_bonus_credit(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "report", "select accountid, " 
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
+                              + " accountid as 'Account ID', "
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as 'Fullname', "
+                              + " (select Username from tblsubscriber where accountid=a.accountid) as 'Username', "
+                              + " bonus_type as 'Bonus Type', " 
+                              + " amount as 'Amount', " 
+                              + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
+                              + " date_format(datetrn,'%r') as 'Time' "
+                              + " from tblbonusreturn as a where operatorid='"+operatorid+"' "
+                              + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                              + " order by id asc");
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Account ID', 'center' union all "
+                              + " select 2, 'Fullname', 'left'  union all "
+                              + " select 3, 'Username', 'center'  union all "
+                              + " select 4, 'Bonus Type', 'center' union all "
+                              + " select 5, 'Amount', 'right'  union all "
+                              + " select 6, 'Date', 'center'  union all "
+                              + " select 7, 'Time', 'center' "
                               + "");
       return mainObj;
  }

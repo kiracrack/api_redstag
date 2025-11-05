@@ -88,7 +88,7 @@ try{
 
                 LogTransaction(info.operatorid, userid, provider, sessionid, gamecode, bet, 0,reference, "R");
                 ExecuteQuery("insert into tblgamelogs_funky set operatorid='"+info.operatorid+"',playerId='"+userid+"', sessionId='"+sessionid+"', playerIp='"+playerIp+"', gameCode='"+gamecode+"', gameName='"+rchar(game.gamename)+"', gameProvider='"+gameprovider+"', refNo='"+reference+"', stake="+bet+", winAmount=0, betStatus='R', voucherId='"+voucherid+"', effectiveStake='',freeSpinMainBet='', datetrn=current_timestamp");    
-                LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0);
+                LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
 
                 JSONObject subObj = new JSONObject();
                 subObj.put("balance", getLatestCreditBalance(userid));
@@ -181,7 +181,7 @@ try{
                 ExecuteQuery("UPDATE tblgamelogs_funky set winAmount="+win_amount+", betStatus='"+status+"', voucherId='"+voucherid+"', effectiveStake="+effective+",freeSpinMainBet='"+freeSpinMainBet+"', datesettled=current_timestamp" +
                                     " where operatorid='"+info.operatorid+"' and playerId='"+userid+"' and refNo='"+reference+"' "); 
 
-                ExecuteQuery("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+info.operatorid+"' and accountid='"+userid+"' and reference='"+reference+"' "); 
+                ExecuteQuery("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+info.operatorid+"' and accountid='"+userid+"' and provider='"+provider+"' and reference='"+reference+"' "); 
 
                 JSONObject subObj = new JSONObject();
                 subObj.put("refNo", reference);
@@ -295,8 +295,8 @@ try{
   }
  %>
 
- <%!public void LogGameSummary(String operatorid, String sessionid, String accountid, String fullname, String masteragentid, String agentid, String gameId, String gamename, String reference,  double bet,  double win,  double winloss) {
-    ExecuteQuery("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='funky',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
+ <%!public void LogGameSummary(String operatorid, String sessionid, String accountid, String fullname, String masteragentid, String agentid, String gameId, String gamename, String reference,  double bet,  double win,  double winloss, boolean promo) {
+    ExecuteQuery("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='funky',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", promo="+promo+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
   }
  %> 
  

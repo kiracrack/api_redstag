@@ -416,6 +416,19 @@
     }
 }%>
 
+<%!public void ClearExistingBonus(String accountid){
+    AccountInfo info = new AccountInfo(accountid);
+    if(info.daily_enabled) ExecuteQuery("UPDATE tblsubscriber set daily_enabled=0, daily_rate=0 where accountid='"+accountid+"'");
+    if(info.rebate_enabled) ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=0, bonus_amount=0, totaldeposit=0 where accountid='"+accountid+"'");
+    if(info.welcome_enabled) ExecuteQuery("UPDATE tblsubscriber set welcome_enabled=0, welcome_rate=0, welcome_bonus=0, welcome_amount=0 where accountid='"+accountid+"'");
+    if(info.midnight_enabled) ExecuteQuery("UPDATE tblsubscriber set midnight_enabled=0, midnight_bonus=0, midnight_amount=0 where accountid='"+accountid+"'");
+    if(info.winstrike_enabled) ExecuteQuery("UPDATE tblsubscriber set winstrike_enabled=0, winstrike_selection='', winstrike_category='', winstrike_eventid='', winstrike_bonus=0 where accountid='"+accountid+"'");
+    if(info.socialmedia_enabled) ExecuteQuery("UPDATE tblsubscriber set socialmedia_enabled=0, bonus_amount=0 where accountid='"+accountid+"'");
+    if(info.weekly_loss_enabled) ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=0 where accountid='"+accountid+"'");
+    if(info.custom_promo_enabled) ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=0, custom_promo_code='',custom_promo_name='', custom_promo_turnover=0, custom_promo_maxwd=0, newdeposit=0 where accountid='"+accountid+"'");
+    if(info.special_bonus_enabled) ExecuteQuery("UPDATE tblsubscriber set special_bonus_enabled=0 where accountid='"+accountid+"'");
+}%>
+
  <%!public String CurrentMonth(){
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM");

@@ -67,6 +67,9 @@
    obj.put("custom_promo_code", info.custom_promo_code);
    obj.put("custom_promo_name", info.custom_promo_name);
    obj.put("custom_promo_maxwd", info.custom_promo_maxwd);
+   PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
+   obj.put("custom_promo_slotgame", promo.slotgame || false);
+   obj.put("custom_promo_cockfight", promo.cockfight || false);
 
    if(login){
       obj.put("firebasemode", globalFirebaseMode);

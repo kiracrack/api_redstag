@@ -127,12 +127,13 @@
 }%>
 
 <%!public class AccountInfo{
-    public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name;
+    public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name, promo_active_code, promo_active_name;
     public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website;
     public double commissionrate, creditbal, videomincredit, minbet, maxbet, bonus_amount, newdeposit, totaldeposit, telco_deposit, telco_withdraw;
     public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover;
     public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
     public boolean telco_enabled, welcome_enabled, daily_enabled, socialmedia_available, socialmedia_enabled, winstrike_available, winstrike_enabled, weekly_loss_enabled, special_bonus_enabled, custom_promo_enabled;
+    public boolean ispromoactive;
     public int totalonline;
     public AccountInfo(String accountid){
         try{
@@ -229,6 +230,42 @@
                 this.custom_promo_name = rst.getString("custom_promo_name");
                 this.custom_promo_maxwd = rst.getDouble("custom_promo_maxwd");
                 this.custom_promo_turnover = rst.getDouble("custom_promo_turnover");
+
+                this.ispromoactive = (this.rebate_enabled  || this.midnight_enabled || this.weekly_loss_enabled || this.special_bonus_enabled || this.welcome_enabled || this.daily_enabled || this.socialmedia_enabled || this.winstrike_enabled || this.custom_promo_enabled );
+                
+                if(this.rebate_enabled){
+                    this.promo_active_code = "promo_rebate";
+                    this.promo_active_name = "8% Daily Rebate Bonus";
+
+                }else if(this.weekly_loss_enabled){
+                    this.promo_active_code = "promo_weekly_loss";
+                    this.promo_active_name = "Weekly Loss Rebate 5%";
+
+                }else if(this.special_bonus_enabled){
+                    this.promo_active_code = "promo_special";
+                    this.promo_active_name = "Special Bonus";
+
+                }else if(this.welcome_enabled){
+                    this.promo_active_code = "promo_welcome";
+                    this.promo_active_name = "Welcome Bonus";
+
+                }else if(this.daily_enabled){
+                    this.promo_active_code = "promo_daily";
+                    this.promo_active_name = "Daily Bonus";
+
+                }else if(this.socialmedia_enabled){
+                    this.promo_active_code = "promo_socialmedia";
+                    this.promo_active_name = "Social Media Bonus";
+
+                }else if(this.winstrike_enabled){
+                    this.promo_active_code = "promo_win_strike";
+                    this.promo_active_name = "Win Strike Bonus";
+
+                }else if(this.custom_promo_enabled){
+                    this.promo_active_code = this.custom_promo_code;
+                    this.promo_active_name = this.custom_promo_name;
+                }
+                
 
                 if(this.winstrike_category.equals("silver")){
                     this.winstrike_type = "Strike X7 Silver";
@@ -857,7 +894,7 @@
     public DownlineWinlossCockfight(String agentid, String datefrom, String dateto){
         try{
             ResultSet rst = null; 
-            rst =  SelectQuery("select ROUND(sum(win_amount) - sum(lose_amount),2) as winloss from tblfightbets2 as a where agentid='"+agentid+"'  and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
+            rst =  SelectQuery("select ROUND(sum(win_amount) - sum(lose_amount),2) as winloss from tblfightbets2 as a where promo=0 and agentid='"+agentid+"'  and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
             while(rst.next()){
                 this.winloss = rst.getDouble("winloss");  
             }
@@ -873,7 +910,7 @@
     public DownlineWinlossCasino(String agentid, String datefrom, String dateto){
         try{
             ResultSet rst = null; 
-            rst =  SelectQuery("select ifnull(sum(winloss),0) as winloss from tblgamesummary as a where agentid='"+agentid+"' and date_format(gamedate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
+            rst =  SelectQuery("select ifnull(sum(winloss),0) as winloss from tblgamesummary as a where promo=0 and agentid='"+agentid+"' and date_format(gamedate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
             while(rst.next()){
                 this.winloss = rst.getDouble("winloss");  
             }
@@ -889,7 +926,7 @@
     public PlayerWinlossCockfight(String accountid, String datefrom, String dateto){
         try{
             ResultSet rst = null; 
-            rst =  SelectQuery("select ROUND(sum(win_amount) - sum(lose_amount),2) as winloss from tblfightbets2 as a where accountid='"+accountid+"'  and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
+            rst =  SelectQuery("select ROUND(sum(win_amount) - sum(lose_amount),2) as winloss from tblfightbets2 as a where promo=0 and accountid='"+accountid+"'  and cancelled=0 and date_format(datetrn, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
             while(rst.next()){
                 this.winloss = rst.getDouble("winloss");  
             }
@@ -905,7 +942,7 @@
     public PlayerWinlossCasino(String accountid, String datefrom, String dateto){
         try{
             ResultSet rst = null; 
-            rst =  SelectQuery("select ifnull(sum(winloss),0) as winloss from tblgamesummary as a where accountid='"+accountid+"' and date_format(gamedate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
+            rst =  SelectQuery("select ifnull(sum(winloss),0) as winloss from tblgamesummary as a where promo=0 and accountid='"+accountid+"' and date_format(gamedate, '%Y-%m-%d') between '" + datefrom + "' and '" + dateto + "'");
             while(rst.next()){
                 this.winloss = rst.getDouble("winloss");  
             }
