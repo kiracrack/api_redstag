@@ -199,14 +199,25 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
-    }else if(x.equals("promotion_bonus_report")){
+    }else if(x.equals("regular_bonus_report")){
         String operatorid = request.getParameter("operatorid");
         boolean range = Boolean.parseBoolean(request.getParameter("range"));
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
 
         mainObj.put("status", "OK");
-        mainObj = promotion_bonus_report(mainObj,operatorid,range,datefrom,dateto);
+        mainObj = regular_bonus_report(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+
+    }else if(x.equals("custom_bonus_report")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = custom_bonus_report(mainObj,operatorid,range,datefrom,dateto);
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
@@ -341,6 +352,8 @@ try{
                               + " group_concat(distinct (select arenaname from tblarena where arenaid=a.arenaid)) as 'Arena', " 
                               + " group_concat(distinct platform) as 'Platform', " 
                               + " (select creditbal from tblsubscriber where accountid=a.accountid) as 'Score Balance', " 
+                              + " sum(if(promo, 0, win_amount)) - sum(if(promo, 0, lose_amount)) as 'Actual' "
+                              + " sum(if(promo, win_amount, 0)) - sum(if(promo, lose_amount, 0)) as 'Promo' "
                               + " sum(win_amount) - sum(lose_amount) as 'Win/Loss' "
                               + " from tblfightbets2 as a where operatorid='"+operatorid+"' and dummy=0 and banker=0 and test=0 and cancelled=0 "
                               + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
@@ -354,7 +367,9 @@ try{
                               + " select 5, 'Arena', 'center'  union all "
                               + " select 6, 'Platform', 'center'  union all "
                               + " select 7, 'Score Balance', 'right'  union all "
-                              + " select 8, 'Win/Loss', 'right'"
+                              + " select 8, 'Actual', 'right'  union all "
+                              + " select 9, 'Promo', 'right'  union all "
+                              + " select 10, 'Win/Loss', 'right'"
                               + "");
       return mainObj;
  }
@@ -680,6 +695,8 @@ try{
       mainObj = DBtoJson(mainObj, "report", "select *, winloss as 'Win/Loss' from (select " 
                               + " a.gamename as 'Game Name', " 
                               + " if(a.provider='infinity','NEKO',ucase(a.provider)) as Provider, " 
+                              + " ifnull(sum(if(promo, 0, b.winloss)),0) as 'Actual', " 
+                              + " ifnull(sum(if(promo, b.winloss, 0)),0) as 'Promo', " 
                               + " ifnull(sum(b.winloss),0) as 'winloss' " 
                               + " FROM tblgamelist as a left join tblgamesummary as b on a.gameid=b.gameid where b.operatorid='"+operatorid+"' "
                               + (range ? " and date_format(b.gamedate,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
@@ -689,7 +706,9 @@ try{
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
                               + " select 1, 'Provider', 'center'  union all "
                               + " select 2, 'Game Name', 'left'  union all "
-                              + " select 3, 'Win/Loss', 'right'"
+                              + " select 3, 'Actual', 'right'  union all "
+                              + " select 4, 'Promo', 'right'  union all "
+                              + " select 5, 'Win/Loss', 'right'"
                               + "");
       return mainObj;
  }
@@ -700,6 +719,8 @@ try{
       mainObj = DBtoJson(mainObj, "report", "select " 
                               + " (select fullname from tblsubscriber where accountid=a.masteragentid) as 'Master Agent', " 
                               + " if(provider='infinity','NEKO',ucase(provider)) as Provider, " 
+                              + " sum(if(promo, 0, winloss)) as 'Actual', " 
+                              + " sum(if(promo, winloss, 0)) as 'Promo', " 
                               + " sum(winloss) as 'Win/Loss' " 
                               + " from tblgamesummary as a where operatorid='"+operatorid+"' "
                               + (range ? " and date_format(gamedate,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
@@ -709,13 +730,15 @@ try{
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
                               + " select 1, 'Master Agent', 'left'  union all "
                               + " select 2, 'Provider', 'center'  union all "
-                              + " select 3, 'Win/Loss', 'right'"
+                              + " select 3, 'Actual', 'right'  union all "
+                              + " select 4, 'Promo', 'right'  union all "
+                              + " select 5, 'Win/Loss', 'right'"
                               + "");
       return mainObj;
  }
  %>
 
-<%!public JSONObject promotion_bonus_report(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+<%!public JSONObject regular_bonus_report(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
       mainObj = DBtoJson(mainObj, "report", "select "
                               + " accountid, " 
                               + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
@@ -726,6 +749,31 @@ try{
                               + " date_format(bonusdate,'%Y-%m-%d') as 'Bonus Date', "
                               + " date_format(dateclaimed,'%Y-%m-%d %r') as 'Date Claim'  " 
                               + " from tblbonus as a where operatorid='"+operatorid+"' and bonuscode not in (select promocode from tblpromotion where build_in=0) "
+                              + (range ? " and date_format(dateclaimed,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : ""));
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Account No.', 'center'  union all "
+                              + " select 2, 'Account Name', 'left'  union all "
+                              + " select 3, 'Bonus Type', 'left'  union all "
+                              + " select 4, 'Amount', 'right'  union all " 
+                              + " select 5, 'Bonus Date', 'center'  union all "
+                              + " select 6, 'Date Claim', 'center' "
+                              + "");
+      return mainObj;
+ }
+ %>
+
+ <%!public JSONObject custom_bonus_report(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "report", "select "
+                              + " accountid, " 
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
+                              + " accountid as 'Account No.', " 
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as 'Account Name', " 
+                              + " bonus_type as 'Bonus Type', " 
+                              + " amount as 'Amount', " 
+                              + " date_format(bonusdate,'%Y-%m-%d') as 'Bonus Date', "
+                              + " date_format(dateclaimed,'%Y-%m-%d %r') as 'Date Claim'  " 
+                              + " from tblbonus as a where operatorid='"+operatorid+"' and bonuscode in (select promocode from tblpromotion where build_in=0) "
                               + (range ? " and date_format(dateclaimed,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : ""));
 
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
