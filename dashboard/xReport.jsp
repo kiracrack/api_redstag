@@ -866,7 +866,7 @@ try{
                               + " amount as 'Amount', " 
                               + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
                               + " date_format(datetrn,'%r') as 'Time' "
-                              + " from tblbonusreturn as a where operatorid='"+operatorid+"' "
+                              + " from tblbonusreturn as a where bonus_code not in (select promocode from tblpromotion where build_in=0) and operatorid='"+operatorid+"' "
                               + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
                               + " order by id asc");
 
