@@ -237,6 +237,10 @@
                     this.promo_active_code = "promo_rebate";
                     this.promo_active_name = "8% Daily Rebate Bonus";
 
+                }else if(this.midnight_enabled){
+                    this.promo_active_code = "promo_midnight";
+                    this.promo_active_name = "10% Mid-Night Bonus";
+
                 }else if(this.weekly_loss_enabled){
                     this.promo_active_code = "promo_weekly_loss";
                     this.promo_active_name = "Weekly Loss Rebate 5%";

@@ -26,6 +26,7 @@
 
 <%!public class GameProfile{
     public String gamename,gametype,aliasname,developer,popularity,imageurl,imageurl2;
+    public boolean isnewgame;
     public GameProfile(String gamecode, String provider){
         try{
             ResultSet rst = null; 
@@ -38,6 +39,7 @@
                 this.popularity = rst.getString("popularity");
                 this.imageurl = rst.getString("imageurl");
                 this.imageurl2 = rst.getString("imageurl");
+                this.isnewgame = rst.getBoolean("isnewgame");
             }
             rst.close();
         }catch(SQLException e){

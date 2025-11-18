@@ -205,6 +205,22 @@ try{
         mainObj = GameEnableList(mainObj, provider);
         out.print(mainObj);
 
+    }else if(x.equals("set_game_info")){
+        String id = request.getParameter("id");
+        String gameid = request.getParameter("gameid");
+        String provider = request.getParameter("provider");
+        String gamename = request.getParameter("gamename");
+        boolean isnewgame = Boolean.parseBoolean(request.getParameter("isnewgame"));
+        boolean isenable = Boolean.parseBoolean(request.getParameter("isenable"));
+    
+        ExecuteQuery("UPDATE tblgamelist set gamename='"+rchar(gamename)+"', isnewgame="+isnewgame+", isenable="+isenable+" where id='"+id+"'");
+        ExecuteQuery("UPDATE tblgamesource set isnewgame="+isnewgame+" where provider=lcase('"+provider+"') and gamecode='"+gameid+"'");
+        mainObj.put("message", "Game info successfully updated!");
+
+        mainObj.put("status", "OK");
+        mainObj = GameEnableList(mainObj, provider);
+        out.print(mainObj);
+
     }else if(x.equals("update_game_category")){
         String ids = request.getParameter("id");
         String code = request.getParameter("code");

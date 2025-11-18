@@ -202,7 +202,7 @@
  %>
 
  <%!public JSONObject api_casino_games(JSONObject mainObj) {
-    mainObj = DBtoJson(mainObj, "game_list", "select a.id, a.gameid, a.gamename, a.provider, b.isnewgame, a.category, IF(IFNULL(a.imgurl2, '') = '',a.imgurl1,a.imgurl2) as imageurl from tblgamelist as a inner join tblgamesource as b on a.gameid=b.gamecode where isenable=1 and category in (select code from tblgamecategory) and a.provider in (select provider from tblgameprovider where active=1) order by rand() ;");            
+    mainObj = DBtoJson(mainObj, "game_list", "select a.id, a.gameid, a.gamename, a.provider, a.isnewgame, a.category, IF(IFNULL(a.imgurl2, '') = '',a.imgurl1,a.imgurl2) as imageurl from tblgamelist as a inner join tblgamesource as b on a.gameid=b.gamecode where isenable=1 and category in (select code from tblgamecategory) and a.provider in (select provider from tblgameprovider where active=1) order by rand() ;");            
     return mainObj;
  }
  %>

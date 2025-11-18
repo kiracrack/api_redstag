@@ -14,7 +14,7 @@
 } %>
 
  <%!public JSONObject GameEnableList(JSONObject mainObj, String provider) {
-    mainObj = DBtoJson(mainObj, "game_enabled_list", "select id, gameid, gamename, gametype, (select categoryname from tblgamecategory where code=a.category) as 'category', ucase(provider) as provider, imgurl1,imgurl2,imgname from tblgamelist as a where provider='"+provider+"' and isenable=1");       
+    mainObj = DBtoJson(mainObj, "game_enabled_list", "select id, gameid, gamename, gametype, (select categoryname from tblgamecategory where code=a.category) as 'category', ucase(provider) as provider, imgurl1,imgurl2,imgname, isnewgame, isenable from tblgamelist as a where provider='"+provider+"' and isenable=1");       
     return mainObj;
  }
 %>
@@ -51,9 +51,9 @@
 <%!public void EnableGameFilter(String gameid, String provider) {
     GameProfile game = new GameProfile(gameid, provider);
     if(CountQry("tblgamelist", "provider='"+provider+"' and gameid='" + gameid + "'") == 0){
-        ExecuteQuery("insert into tblgamelist set provider='"+provider+"', gameid='" + gameid + "', gamename='" + rchar(game.gamename) + "', gametype='" + game.gametype + "', imgurl1='" + game.imageurl + "', isenable=1 ");
+        ExecuteQuery("insert into tblgamelist set provider='"+provider+"', gameid='" + gameid + "', gamename='" + rchar(game.gamename) + "', gametype='" + game.gametype + "', imgurl1='" + game.imageurl + "', isenable=1, isnewgame="+ game.isnewgame+" ");
     }else{
-        ExecuteQuery("UPDATE tblgamelist set gamename='" + rchar(game.gamename) + "', gametype='" + game.gametype + "', imgurl1='" + game.imageurl + "', isenable=1 where provider='"+provider+"' and gameid='" + gameid + "'");
+        ExecuteQuery("UPDATE tblgamelist set gamename='" + rchar(game.gamename) + "', gametype='" + game.gametype + "', imgurl1='" + game.imageurl + "', isenable=1, isnewgame="+ game.isnewgame+" where provider='"+provider+"' and gameid='" + gameid + "'");
     }
 }
 %>
