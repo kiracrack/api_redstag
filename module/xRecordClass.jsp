@@ -738,7 +738,7 @@
 
 <%!public class PromotionInfo{
     public String title, banner_url, claim_limit;
-    public boolean build_in, fix_amount, cockfight, slotgame;
+    public boolean build_in, fix_amount, approval, cockfight, slotgame;
     public double amount, turnover, mindeposit, maxwithdraw, max_claim;
     public PromotionInfo(String promocode){
         try{
@@ -756,12 +756,35 @@
                 
                 this.build_in = rst.getBoolean("build_in");
                 this.fix_amount = rst.getBoolean("fix_amount");
+
+                this.approval = rst.getBoolean("approval");
                 this.cockfight = rst.getBoolean("cockfight");
                 this.slotgame = rst.getBoolean("slotgame");
             }
             rst.close();
         }catch(SQLException e){
             logError("class-promotion",e.toString());
+        }
+    }
+}%>
+
+<%!public class BonusInfo{
+    public String accountid, bonuscode, bonus_type, appreference;
+    public double amount;
+    public BonusInfo(String id){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("select * from tblbonus where id='"+id+"'");
+            while(rst.next()){
+                this.accountid = rst.getString("accountid");
+                this.bonuscode = rst.getString("bonuscode");
+                this.bonus_type = rst.getString("bonus_type");
+                this.appreference = rst.getString("appreference");
+                this.amount = rst.getDouble("amount");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-bonus-info",e.toString());
         }
     }
 }%>

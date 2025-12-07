@@ -773,7 +773,7 @@ try{
                               + " amount as 'Amount', " 
                               + " date_format(bonusdate,'%Y-%m-%d') as 'Bonus Date', "
                               + " date_format(dateclaimed,'%Y-%m-%d %r') as 'Date Claim'  " 
-                              + " from tblbonus as a where operatorid='"+operatorid+"' and bonuscode in (select promocode from tblpromotion where build_in=0) "
+                              + " from tblbonus as a where operatorid='"+operatorid+"' and approved=1 and bonuscode in (select promocode from tblpromotion where build_in=0) "
                               + (range ? " and date_format(dateclaimed,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : ""));
 
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "

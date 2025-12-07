@@ -197,10 +197,30 @@
     String tokenid = ai.tokenid;
 
     if(tokenid.length() > 0){
-        FirebasePush(tokenid, "score", "Congratulations", description ,"", "score_add", param, "TRUE");
+        FirebasePush(tokenid, "score", "Congratulations", description ,"", "", param, "TRUE");
     }
 
     param.put("title", "Congratulations");
+    param.put("description", description);
+    JSONObject apiObj = new JSONObject();
+    apiObj.put("score", param);
+    PusherPost(accountid, apiObj);
+  }%>
+
+<%!public void SendAlertNotification(String accountid, String description, double amount) {
+    JSONObject param = new JSONObject();
+    param.put("accountid", accountid);
+    param.put("amount", String.valueOf(amount));
+    
+    AccountInfo ai = new AccountInfo(accountid);
+    param.put("creditbal", String.valueOf(ai.creditbal));
+    String tokenid = ai.tokenid;
+
+    if(tokenid.length() > 0){
+        FirebasePush(tokenid, "score", "Ohhh no!", description ,"", "", param, "TRUE");
+    }
+
+    param.put("title", "Ohhh no!");
     param.put("description", description);
     JSONObject apiObj = new JSONObject();
     apiObj.put("score", param);

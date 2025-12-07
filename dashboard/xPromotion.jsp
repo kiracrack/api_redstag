@@ -92,10 +92,11 @@ try{
         String claim_limit = request.getParameter("claim_limit");
 
         boolean fix_amount = Boolean.parseBoolean(request.getParameter("fix_amount"));
+        boolean approval = Boolean.parseBoolean(request.getParameter("approval"));
         boolean cockfight = Boolean.parseBoolean(request.getParameter("cockfight"));
         boolean slotgame = Boolean.parseBoolean(request.getParameter("slotgame"));
 
-        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
+        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', approval="+approval+", cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
        
         mainObj.put("status", "OK");
         mainObj.put("message", "Promo successfully updated!");
@@ -136,7 +137,47 @@ try{
         mainObj.put("status", "OK");
         mainObj.put("message", "Promotion successfully notified all devices!");
         out.print(mainObj);
+        
+    }else if(x.equals("bonus_for_approval")){
+        mainObj.put("status", "OK");
+        mainObj = load_bonus_for_approval(mainObj);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
 
+    }else if(x.equals("reject_bonus_request")){
+        String id = request.getParameter("id");
+        BonusInfo bonus = new BonusInfo(id);
+
+        ExecuteQuery("DELETE from tblbonus where id='"+id+"'");
+
+        mainObj.put("status", "OK");
+        mainObj = load_bonus_for_approval(mainObj);
+        mainObj.put("message", "Bonus successfully rejected");
+        SendAlertNotification(bonus.accountid, "We regret to inform you that your bonus request was not approved.", bonus.amount);
+        out.print(mainObj);
+
+    }else if(x.equals("approve_bonus_request")){
+        String id = request.getParameter("id");
+        BonusInfo bonus = new BonusInfo(id);
+
+        PromotionInfo promo = new PromotionInfo(bonus.bonuscode);
+        AccountInfo info = new AccountInfo(bonus.accountid);
+
+        double turnover = 0;
+        if(promo.fix_amount) turnover = promo.amount * promo.turnover;
+        else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
+
+        ClearExistingBonus(bonus.accountid);
+        ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+bonus.bonuscode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+bonus.accountid+"'");
+        ExecuteQuery("UPDATE tblbonus set approved=1 where id='"+id+"'");
+        ExecuteSetScore(info.operatorid, sessionid, bonus.appreference, bonus.accountid, info.fullname, "ADD", bonus.amount, rchar(promo.title), bonus.accountid);
+        SendBonusNotification(bonus.accountid, "You have received "+String.format("%,.2f", bonus.amount) + " from " + rchar(promo.title), bonus.amount);
+        
+        mainObj.put("status", "OK");
+        mainObj = load_bonus_for_approval(mainObj);
+        mainObj.put("message", "Bonus successfully approved");
+        out.print(mainObj);
+        
     }else{
         mainObj.put("status", "ERROR");
         mainObj.put("message","request not valid ");
@@ -159,6 +200,13 @@ try{
 
  <%!public JSONObject load_promotion(JSONObject mainObj, String operatorid) {
       mainObj = DBtoJson(mainObj, "promotion", "select *, if(!fix_amount, concat(amount,'%'),'-') as 'bonus_percent', if(fix_amount, amount, 0) as 'bonus_amount', concat('X', turnover) as 'turnover2' from tblpromotion order by sortorder asc");
+      return mainObj;
+ }
+ %>
+
+  <%!public JSONObject load_bonus_for_approval(JSONObject mainObj) {
+      mainObj = DBtoJson(mainObj, "bonus", "select id, accountid, (select fullname from tblsubscriber where accountid=a.accountid) as fullname, bonus_type, amount, " 
+                              + " date_format(bonusdate,'%Y-%m-%d') as 'date_request' from tblbonus as a where approved=0 and bonuscode in (select promocode from tblpromotion where build_in=0) ");
       return mainObj;
  }
  %>

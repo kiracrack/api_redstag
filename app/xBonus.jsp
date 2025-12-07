@@ -297,7 +297,7 @@ try{
             String promocode = request.getParameter("promocode");
             String appreference = request.getParameter("appreference");
             PromotionInfo promo = new PromotionInfo(promocode);
- 
+            
             double turnover = 0;
             if(promo.fix_amount) turnover = promo.amount * promo.turnover;
             else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
@@ -307,19 +307,31 @@ try{
             else bonus = info.newdeposit * (promo.amount / 100);
 
             bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
-            ClearExistingBonus(userid);
-            ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", dateclaimed=current_timestamp");
-            ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
-            ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
-            SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
-            
-            mainObj.put("status", "OK");
-            mainObj = api_account_info(mainObj, userid, false);
-            mainObj = api_custom_promo(mainObj, userid);
-            mainObj = api_promotion_list(mainObj, info.operatorid);
-            mainObj.put("message", "You have successfully claim your "+promo.title+"! Congratulations");
-            out.print(mainObj);
 
+            if(promo.approval){
+                ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=0, dateclaimed=current_timestamp");
+                mainObj.put("status", "OK");
+                mainObj = api_account_info(mainObj, userid, false);
+                mainObj = api_custom_promo(mainObj, userid);
+                mainObj = api_promotion_list(mainObj, info.operatorid);
+                mainObj.put("message", "Your "+promo.title+" promotion has been submitted for approval! Please wait 1-15 minutes while we are processing your request");
+                out.print(mainObj);
+            }else{
+                
+                ClearExistingBonus(userid);
+                ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=1, dateclaimed=current_timestamp");
+                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
+                ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
+                SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
+                
+                mainObj.put("status", "OK");
+                mainObj = api_account_info(mainObj, userid, false);
+                mainObj = api_custom_promo(mainObj, userid);
+                mainObj = api_promotion_list(mainObj, info.operatorid);
+                mainObj.put("message", "");
+                out.print(mainObj);
+            }
+            
         }else{
             mainObj.put("status", "ERROR");
             mainObj.put("message","request not valid");
