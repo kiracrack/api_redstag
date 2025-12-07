@@ -121,7 +121,7 @@
     try {
         JSONArray ja =new JSONArray();
         ResultSet rst = null;  
-        rst =  SelectQuery("select *,if(!online, if(total < 0,round(total*0.11,2), total), total) as  winloss from (select masteragentid, (select fullname from tblsubscriber where accountid=a.masteragentid) as masteragentname, sum(winloss) as total, if(masteragentid='101-00019',true,false) as online from "
+        rst =  SelectQuery("select *,if(!online, round(total*0.11,2), total) as  winloss from (select masteragentid, (select fullname from tblsubscriber where accountid=a.masteragentid) as masteragentname, sum(winloss) as total, if(masteragentid='101-00019',true,false) as online from "
                                 + " tblgamesummary as a where promo=0 and masteragentid in (select accountid from tblwinlossfilter) and date_format(gamedate,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
         while(rst.next()){
             JSONObject obj =new JSONObject();
