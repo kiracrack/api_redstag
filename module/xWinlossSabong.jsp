@@ -121,12 +121,18 @@
     try {
         JSONArray ja =new JSONArray();
         ResultSet rst = null;  
-        rst =  SelectQuery("select *,if(!online, round(total*0.11,2), total) as  winloss from (select masteragentid, (select fullname from tblsubscriber where accountid=a.masteragentid) as masteragentname, sum(win_amount) - sum(lose_amount) as total, if(masteragentid='101-00019',true,false) as online from "
-                                    + " tblfightbets2 as a where promo=0 and masteragentid in (select accountid from tblwinlossfilter) and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
+        rst =  SelectQuery("select *,if(!online, round(actual*0.11,2), actual) as winloss from (select masteragentid, (select fullname from tblsubscriber where accountid=a.masteragentid) as masteragentname, " 
+                                    + " sum(ifnull(if(promo, 0, win_amount),0)) - sum(ifnull(if(promo, 0, lose_amount),0)) as actual, "
+                                    + " sum(ifnull(if(promo, win_amount, 0),0)) - sum(ifnull(if(promo, lose_amount, 0),0)) as promo, "
+                                    + " sum(win_amount) - sum(lose_amount) as total, "
+                                    + " if(masteragentid='101-00019',true,false) as online from "
+                                    + " tblfightbets2 as a where masteragentid in (select accountid from tblwinlossfilter) and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
         while(rst.next()){
             JSONObject obj =new JSONObject();
             obj.put("accountid", rst.getString("masteragentid"));
             obj.put("fullname", rst.getString("masteragentname"));
+            obj.put("actual", rst.getString("actual"));
+            obj.put("promo", rst.getString("promo"));
             obj.put("total", rst.getString("total"));
             obj.put("win_loss", rst.getString("winloss"));
             obj.put("isagent", true);

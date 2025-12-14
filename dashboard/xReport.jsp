@@ -352,8 +352,8 @@ try{
                               + " group_concat(distinct (select arenaname from tblarena where arenaid=a.arenaid)) as 'Arena', " 
                               + " group_concat(distinct platform) as 'Platform', " 
                               + " (select creditbal from tblsubscriber where accountid=a.accountid) as 'Score Balance', " 
-                              + " sum(if(promo, 0, win_amount)) - sum(if(promo, 0, lose_amount)) as 'Actual' "
-                              + " sum(if(promo, win_amount, 0)) - sum(if(promo, lose_amount, 0)) as 'Promo' "
+                              + " sum(if(promo, 0, win_amount)) - sum(if(promo, 0, lose_amount)) as 'Actual', "
+                              + " sum(if(promo, win_amount, 0)) - sum(if(promo, lose_amount, 0)) as 'Promo', "
                               + " sum(win_amount) - sum(lose_amount) as 'Win/Loss' "
                               + " from tblfightbets2 as a where operatorid='"+operatorid+"' and dummy=0 and banker=0 and test=0 and cancelled=0 "
                               + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
@@ -652,7 +652,8 @@ try{
                               + " (select fullname from tblsubscriber where accountid=a.masteragentid) as 'Master Agent', " 
                               + " (select fullname from tblsubscriber where accountid=a.agentid) as 'Agent', " 
                               + " sum(totalbets) as 'Turnover', " 
-                              + " sum(totalwin) as 'Total Win', " 
+                              + " ifnull(sum(if(promo, 0, winloss)),0) as 'Actual', " 
+                              + " ifnull(sum(if(promo, winloss, 0)),0) as 'Promo', " 
                               + " sum(winloss) as 'Win/Loss' " 
                               + " from tblgamesummary as a where operatorid='"+operatorid+"' "
                               + (range ? " and date_format(gamedate,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
@@ -665,8 +666,9 @@ try{
                               + " select 4, 'Master Agent', 'left'  union all "
                               + " select 5, 'Agent', 'left'  union all "
                               + " select 6, 'Turnover', 'right'  union all "
-                              + " select 7, 'Total Win', 'right'  union all "
-                              + " select 8, 'Win/Loss', 'right'"
+                              + " select 7, 'Actual', 'right'  union all "
+                              + " select 8, 'Promo', 'right'  union all "
+                              + " select 9, 'Win/Loss', 'right'"
                               + "");
       return mainObj;
  }
