@@ -69,7 +69,7 @@ try{
         }
 
         String account_to_name = getAccountName(accountid);
-        Boolean sent = LogLedger(userid, sessionid, appreference, transactionno,"transfer score to "+ FirstName(account_to_name) + (reference.length() > 0? " (" + reference.toLowerCase() + ")" : ""),amount,0, userid);
+        Boolean sent = LogLedger(userid, sessionid, appreference, transactionno,(mode.equals("deposit") ? "approve deposit " + FirstName(account_to_name) : "transfer score to "+ FirstName(account_to_name)) + (reference.length() > 0 ? " (" + reference.toLowerCase() + ")" : ""),amount,0, userid);
         
         String account_from_name = getAccountName(userid);
         String description = (mode.equals("deposit") ? "approve deposit" : "received score from "+ FirstName(account_from_name)) + (reference.length() > 0? " (" + reference.toLowerCase() + ")" : ""); 

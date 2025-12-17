@@ -416,6 +416,22 @@
     }
 }%>
 
+<%!public void ExecuteSetScoreAdmin(String operatorid, String sessionid, String appreference, String accountid, String fullname, String trntype, double amount, String reference, String userid){
+    String transactionno = getOperatorSeriesID(operatorid,"series_load_credit");
+
+    AccountInfo info = new AccountInfo(accountid);
+    ExecuteQuery("insert into tblcreditloadlogs set appreference='"+appreference+"',operatorid='"+operatorid+"',transactionno='"+transactionno+"',accountid='"+accountid+"',masteragentid='"+info.masteragentid+"',agentid='"+info.agentid+"',fullname='"+rchar(fullname)+"',trntype='"+trntype+"',amount='"+amount+"',reference='"+rchar(reference)+"',datetrn=current_timestamp, dashboard=1, trnby='"+userid+"' ");
+    
+    if(trntype.equals("DEDUCT")){
+        String description = (reference.length() > 0 ? reference.toLowerCase() : "deduct score by operator");
+        LogLedger(accountid,sessionid,appreference,transactionno,rchar(description),amount,0, userid);
+
+    }else{
+        String description = (reference.length() > 0 ? reference.toLowerCase() : "added score by operator");
+        LogLedger(accountid,sessionid,appreference,transactionno,rchar(description),0,amount, userid);
+    }
+}%>
+
 <%!public void ClearExistingBonus(String accountid){
     AccountInfo info = new AccountInfo(accountid);
     if(info.daily_enabled) ExecuteQuery("UPDATE tblsubscriber set daily_enabled=0, daily_rate=0 where accountid='"+accountid+"'");

@@ -38,9 +38,11 @@ try{
         String operatorid = request.getParameter("operatorid");
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
+        boolean admin = Boolean.parseBoolean(request.getParameter("admin"));
+        boolean system = Boolean.parseBoolean(request.getParameter("system"));
 
         mainObj.put("status", "OK");
-        mainObj = LoadScore(mainObj,operatorid, datefrom, dateto);
+        mainObj = LoadScore(mainObj,operatorid, datefrom, dateto, admin, system);
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
@@ -61,7 +63,7 @@ try{
             return;
         }
 
-        ExecuteSetScore(operatorid, sessionid, appreference, accountid, fullname, trntype, amount, reference, userid);
+        ExecuteSetScoreAdmin(operatorid, sessionid, appreference, accountid, fullname, trntype, amount, reference, userid);
 
         if(trntype.equals("ADD")){
             mainObj.put("message", "Score successfully added to account " + fullname.toLowerCase());
@@ -91,13 +93,23 @@ try{
 }
 %>
 
-<%!public JSONObject LoadScore(JSONObject mainObj, String operatorid, String datefrom, String dateto) {
-      mainObj = DBtoJson(mainObj, "score", "select *, "
-                            + " (select fullname from tblsubscriber where accountid=a.accountid) as 'accountname', " 
-                            + " (select fullname from tblsubscriber where accountid=a.masteragentid) as 'masteragent', " 
-                            + " (select fullname from tblsubscriber where accountid=a.agentid) as 'agent', " 
-                            + " if(trntype='DEDUCT',-amount,amount) as score from tblcreditloadlogs as a where operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' order by datetrn asc");
-      return mainObj;
+<%!public JSONObject LoadScore(JSONObject mainObj, String operatorid, String datefrom, String dateto, boolean admin, boolean system) {
+    String filter = "";
+    if(admin && system){
+        filter = "";
+    }else if(admin && !system){    
+        filter = " and dashboard=1 ";
+
+    }else if(!admin && system){    
+        filter = " and dashboard=0 ";
+    }
+    mainObj = DBtoJson(mainObj, "score", "select *, "
+                        + " (select fullname from tblsubscriber where accountid=a.accountid) as 'accountname', " 
+                        + " (select fullname from tblsubscriber where accountid=a.masteragentid) as 'masteragent', " 
+                        + " (select fullname from tblsubscriber where accountid=a.agentid) as 'agent', " 
+                        + " if(dashboard, (select fullname from tbladminaccounts where id=a.trnby), (select fullname from tblsubscriber where accountid=a.trnby)) as 'transby', " 
+                        + " if(trntype='DEDUCT',-amount,amount) as score from tblcreditloadlogs as a where operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' " + filter + " order by datetrn asc");
+    return mainObj;
   }%>
 
 <%!public JSONObject LoadScore(JSONObject mainObj, String operatorid) {
