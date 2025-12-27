@@ -298,9 +298,12 @@ try{
             String appreference = request.getParameter("appreference");
             PromotionInfo promo = new PromotionInfo(promocode);
             
-            double turnover = 0;
+            double turnover = 0;  double rollover = 0;
             if(promo.fix_amount) turnover = promo.amount * promo.turnover;
             else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
+
+            if(promo.fix_amount) rollover = promo.amount * promo.rollover;
+            else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover;
 
             double bonus = 0;
             if(promo.fix_amount) bonus = promo.amount;
@@ -320,7 +323,7 @@ try{
                 
                 ClearExistingBonus(userid);
                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=1, dateclaimed=current_timestamp");
-                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
+                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
                 ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
                 SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
                 

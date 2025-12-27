@@ -803,7 +803,7 @@ try{
                               + " promoname as 'Promo', " 
                               + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
                               + " date_format(datetrn,'%r') as 'Time' "
-                              + " from tblwithdrawal as a where confirmed=1 and cancelled=0 and amount-cashout > 0 " 
+                              + " from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
                               + " and (promocode in (select promocode from tblpromotion where build_in=1) or promocode='telco_deposit') "
                               + " and operatorid='"+operatorid+"' "
                               + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
@@ -837,7 +837,7 @@ try{
                               + " promoname as 'Promo', " 
                               + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
                               + " date_format(datetrn,'%r') as 'Time' "
-                              + " from tblwithdrawal as a where confirmed=1 and cancelled=0 and amount-cashout > 0 " 
+                              + " from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
                               + " and promocode in (select promocode from tblpromotion where build_in=0) "
                               + " and operatorid='"+operatorid+"' "
                               + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 

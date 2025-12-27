@@ -85,6 +85,7 @@ try{
         String operatorid = request.getParameter("operatorid");
         String amount = request.getParameter("amount");
         String turnover = request.getParameter("turnover");
+        String rollover = request.getParameter("rollover");
         String mindeposit = request.getParameter("mindeposit");
         String maxdeposit = request.getParameter("maxdeposit");
         String maxwithdraw = request.getParameter("maxwithdraw");
@@ -96,7 +97,7 @@ try{
         boolean cockfight = Boolean.parseBoolean(request.getParameter("cockfight"));
         boolean slotgame = Boolean.parseBoolean(request.getParameter("slotgame"));
 
-        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', approval="+approval+", cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
+        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',rollover='"+rollover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', approval="+approval+", cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
        
         mainObj.put("status", "OK");
         mainObj.put("message", "Promo successfully updated!");
@@ -163,12 +164,15 @@ try{
         PromotionInfo promo = new PromotionInfo(bonus.bonuscode);
         AccountInfo info = new AccountInfo(bonus.accountid);
 
-        double turnover = 0;
+        double turnover = 0;  double rollover = 0;
         if(promo.fix_amount) turnover = promo.amount * promo.turnover;
         else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
 
+        if(promo.fix_amount) rollover = promo.amount * promo.rollover;
+        else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover;
+
         ClearExistingBonus(bonus.accountid);
-        ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+bonus.bonuscode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+bonus.accountid+"'");
+        ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+bonus.bonuscode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+bonus.accountid+"'");
         ExecuteQuery("UPDATE tblbonus set approved=1 where id='"+id+"'");
         ExecuteSetScore(info.operatorid, sessionid, bonus.appreference, bonus.accountid, info.fullname, "ADD", bonus.amount, rchar(promo.title), bonus.accountid);
         SendBonusNotification(bonus.accountid, "You have received "+String.format("%,.2f", bonus.amount) + " from " + rchar(promo.title), bonus.amount);
@@ -199,7 +203,7 @@ try{
  %>
 
  <%!public JSONObject load_promotion(JSONObject mainObj, String operatorid) {
-      mainObj = DBtoJson(mainObj, "promotion", "select *, if(!fix_amount, concat(amount,'%'),'-') as 'bonus_percent', if(fix_amount, amount, 0) as 'bonus_amount', concat('X', turnover) as 'turnover2' from tblpromotion order by sortorder asc");
+      mainObj = DBtoJson(mainObj, "promotion", "select *, if(!fix_amount, concat(amount,'%'),'-') as 'bonus_percent', if(fix_amount, amount, 0) as 'bonus_amount', concat('X', turnover) as 'turnover2', concat('X', rollover) as 'rollover2' from tblpromotion order by sortorder asc");
       return mainObj;
  }
  %>

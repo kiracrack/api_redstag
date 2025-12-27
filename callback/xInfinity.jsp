@@ -80,7 +80,10 @@ try{
                 if(amount != 0){
                     if(amount < 0) LogLedger(userid, sessionId, tradeId, transactionno, game.gamename + " (Bet: " + bet + " Win: "+win+")",-amount, 0, userid);
                     if(amount > 0) LogLedger(userid, sessionId, tradeId, transactionno, game.gamename + " (Win: "+win+")", 0, amount, userid);
-                  
+                    
+                    if(info.custom_promo_enabled && info.custom_promo_rollover > 0){
+                        ExecuteResult("UPDATE tblsubscriber set custom_promo_totalbet = custom_promo_totalbet + "+bet+" where accountid='"+userid+"'");
+                    }
                 }
                 LogTransaction(info.operatorid, userid, provider, sessionId, gameId, bet, win, tradeId, "OK");
                 ExecuteQuery("insert into tblgamelogs_infinity set operatorid='"+info.operatorid+"', login='"+userid+"', hall='"+hall+"', `key`='"+key+"', sessionId='"+sessionId+"', bet="+bet+", win="+win+", winLose="+winLose+", tradeId='"+tradeId+"', betInfo='"+betInfo+"', gameId='"+gameId+"', gamename='"+game.gamename+"', matrix='"+matrix+"', gamedate='"+datetrn+"', datetrn=current_timestamp, WinLines='"+WinLines+"', transactionno='"+transactionno+"'");

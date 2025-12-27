@@ -183,6 +183,10 @@ try{
 
                 ExecuteQuery("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+info.operatorid+"' and accountid='"+userid+"' and provider='"+provider+"' and reference='"+reference+"' "); 
 
+                if(info.custom_promo_enabled && info.custom_promo_rollover > 0){
+                    ExecuteResult("UPDATE tblsubscriber set custom_promo_totalbet = custom_promo_totalbet + "+bet_amount+" where accountid='"+userid+"'");
+                }
+                
                 JSONObject subObj = new JSONObject();
                 subObj.put("refNo", reference);
                 subObj.put("balance", getLatestCreditBalance(userid));

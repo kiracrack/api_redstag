@@ -130,7 +130,7 @@
     public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name, promo_active_code, promo_active_name;
     public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website;
     public double commissionrate, creditbal, videomincredit, minbet, maxbet, bonus_amount, newdeposit, totaldeposit, telco_deposit, telco_withdraw;
-    public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover;
+    public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover, custom_promo_totalbet;
     public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
     public boolean telco_enabled, welcome_enabled, daily_enabled, socialmedia_available, socialmedia_enabled, winstrike_available, winstrike_enabled, weekly_loss_enabled, special_bonus_enabled, custom_promo_enabled;
     public boolean ispromoactive;
@@ -230,6 +230,8 @@
                 this.custom_promo_name = rst.getString("custom_promo_name");
                 this.custom_promo_maxwd = rst.getDouble("custom_promo_maxwd");
                 this.custom_promo_turnover = rst.getDouble("custom_promo_turnover");
+                this.custom_promo_rollover = rst.getDouble("custom_promo_rollover");
+                this.custom_promo_totalbet = rst.getDouble("custom_promo_totalbet");
 
                 this.ispromoactive = (this.rebate_enabled  || this.midnight_enabled || this.weekly_loss_enabled || this.special_bonus_enabled || this.welcome_enabled || this.daily_enabled || this.socialmedia_enabled || this.winstrike_enabled || this.custom_promo_enabled );
                 
@@ -739,7 +741,7 @@
 <%!public class PromotionInfo{
     public String title, banner_url, claim_limit;
     public boolean build_in, fix_amount, approval, cockfight, slotgame;
-    public double amount, turnover, mindeposit, maxwithdraw, max_claim;
+    public double amount, turnover, rollover, mindeposit, maxwithdraw, max_claim;
     public PromotionInfo(String promocode){
         try{
             ResultSet rst = null; 
@@ -749,6 +751,7 @@
                 this.banner_url = rst.getString("banner_url");
                 this.amount = rst.getDouble("amount");
                 this.turnover = rst.getDouble("turnover");
+                this.rollover = rst.getDouble("rollover");
                 this.mindeposit = rst.getDouble("mindeposit");
                 this.maxwithdraw = rst.getDouble("maxwithdraw");
                 this.max_claim = rst.getDouble("max_claim");

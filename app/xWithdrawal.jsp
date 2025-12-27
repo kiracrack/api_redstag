@@ -275,18 +275,30 @@ try{
         }
 
         if(info.custom_promo_enabled){
-            PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
+            /*PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
             
-            double turnover = 0;
+            double turnover = 0;  double rollover = 0;
             if(promo.fix_amount) turnover = promo.amount * promo.turnover;
             else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
 
-            if(amount < turnover){
+            if(promo.fix_amount) rollover = promo.amount * promo.rollover;
+            else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover; */
+
+
+            if(info.custom_promo_turnover > 0 && amount < info.custom_promo_turnover){
                 mainObj.put("status", "ERROR");
-                mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(turnover))+" or greater than total turnover");
+                mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(info.custom_promo_turnover))+" or greater than total turnover");
                 mainObj.put("errorcode", "400");
                 out.print(mainObj);
                 return;
+
+            }else if(info.custom_promo_rollover > 0 && amount < info.custom_promo_rollover){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(info.custom_promo_rollover))+" or greater than total rollover");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+
             }else if(info.creditbal != amount){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message", "Credit score must be withdraw all credit balance");
@@ -340,11 +352,12 @@ try{
             promo_code = "promo_socialmedia";
             promo_name = "social media bonus";
 
-         }else if(info.custom_promo_enabled && info.custom_promo_maxwd != 0){
+         }else if(info.custom_promo_enabled){
             if(info.custom_promo_maxwd > 0){
                 cashout = (amount <= info.custom_promo_maxwd ? amount : info.custom_promo_maxwd);
             }else{
-                cashout = (amount * info.custom_promo_maxwd);
+                //cashout = (amount * info.custom_promo_maxwd);
+                cashout = amount;
             }
             promo_code = info.custom_promo_code;
             promo_name = info.custom_promo_name;

@@ -40,6 +40,10 @@
         }else{
             logError("error-post-bet", "Fightkey: " + event.fightkey + ", accountid: " + userid + ", transactionno: " + transactionno +  ", amount: " + bet_amount);
         }
+
+        if(account.custom_promo_enabled && account.custom_promo_rollover > 0){
+            ExecuteResult("UPDATE tblsubscriber set custom_promo_totalbet = custom_promo_totalbet + "+bet_amount+" where accountid='"+userid+"'");
+        }
     }
   }
  %>
