@@ -23,7 +23,47 @@
  }
  %>
 
+ 
+
 <%!public void SendQueue(String appreference, String mobilenumber, String otpcode, String message){          
+    try {
+        URL url = new URL("https://redstagarena.com/sms.php");
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("api_key", "462_cgK9xSn13WIuIX1oDK_kPPcQCd");
+        params.put("api_secret", "ASchfEmbr33n__qZRIIVsezW_kfIoq");
+        params.put("to", mobilenumber);
+        params.put("text", "RedStag: " + message);
+
+        StringBuilder postData = new StringBuilder();
+        for (Map.Entry<String,Object> param : params.entrySet()) {
+            if (postData.length() != 0) postData.append('&');
+            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+            postData.append('=');
+            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        }
+        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+
+        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+        conn.getOutputStream().write(postDataBytes);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String str_aray = ReadAllLines(br); 
+        ExecuteQuery("update tblotp set server_response='"+rchar(str_aray)+"' where otpcode='"+otpcode+"' and appreference='"+appreference+"'");
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        ExecuteQuery("update tblotp set server_response='"+ e.getMessage() +"' where otpcode='"+otpcode+"' and appreference='"+appreference+"'");
+        logError("app-x-error",e.getMessage());
+    }
+}
+%>
+
+
+<%!public void SendQueueMY(String appreference, String mobilenumber, String otpcode, String message){          
     try {
         URL url = new URL("https://sms.360.my/gw/bulk360/v3_0/send.php");
         Map<String,Object> params = new LinkedHashMap<>();

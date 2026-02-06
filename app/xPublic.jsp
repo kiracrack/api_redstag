@@ -43,7 +43,7 @@ try{
         String otpcode = getRandomAlphaNumeric();
         String message="Your One-Time PIN (OTP) is "+otpcode+". This pin is valid within 30 mins";
         ExecuteQuery("insert into tblotp set appreference='"+appreference+"', mobilenumber='6"+mobilenumber+"', otpcode='"+otpcode+"',message='"+message+"',daterequested=current_timestamp, dateexpired=current_timestamp + INTERVAL 30 MINUTE");
-        SendOTP(appreference, "6" + mobilenumber, otpcode, message);
+        SendOTP(appreference,  mobilenumber, otpcode, message);
          
         mainObj.put("status", "OK");
         mainObj.put("mode", mode);

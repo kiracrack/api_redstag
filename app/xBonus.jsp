@@ -311,6 +311,15 @@ try{
 
             bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
 
+            TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
+            if(!checker.qualified){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met.");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+            }
+           
             if(promo.approval){
                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=0, dateclaimed=current_timestamp");
                 mainObj.put("status", "OK");

@@ -651,6 +651,7 @@ try{
                               + " fullname as 'Account Name', " 
                               + " (select fullname from tblsubscriber where accountid=a.masteragentid) as 'Master Agent', " 
                               + " (select fullname from tblsubscriber where accountid=a.agentid) as 'Agent', " 
+                              + " count(*) as 'Bet Count', " 
                               + " sum(totalbets) as 'Turnover', " 
                               + " ifnull(sum(if(promo, 0, winloss)),0) as 'Actual', " 
                               + " ifnull(sum(if(promo, winloss, 0)),0) as 'Promo', " 
@@ -665,10 +666,11 @@ try{
                               + " select 3, 'Account Name', 'left'  union all "
                               + " select 4, 'Master Agent', 'left'  union all "
                               + " select 5, 'Agent', 'left'  union all "
-                              + " select 6, 'Turnover', 'right'  union all "
-                              + " select 7, 'Actual', 'right'  union all "
-                              + " select 8, 'Promo', 'right'  union all "
-                              + " select 9, 'Win/Loss', 'right'"
+                              + " select 6, 'Bet Count', 'center'  union all "
+                              + " select 7, 'Turnover', 'right'  union all "
+                              + " select 8, 'Actual', 'right'  union all "
+                              + " select 9, 'Promo', 'right'  union all "
+                              + " select 10, 'Win/Loss', 'right'"
                               + "");
       return mainObj;
  }

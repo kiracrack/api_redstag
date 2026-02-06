@@ -275,23 +275,16 @@ try{
         }
 
         if(info.custom_promo_enabled){
-            /*PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
-            
-            double turnover = 0;  double rollover = 0;
-            if(promo.fix_amount) turnover = promo.amount * promo.turnover;
-            else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
-
-            if(promo.fix_amount) rollover = promo.amount * promo.rollover;
-            else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover; */
-
-
-            if(info.custom_promo_turnover > 0 && amount < info.custom_promo_turnover){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(info.custom_promo_turnover))+" or greater than total turnover");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
-
+            if(info.custom_promo_turnover > 0 ){
+                TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
+                if(checker.total < info.custom_promo_turnover){
+                    mainObj.put("status", "ERROR");
+                    mainObj.put("message", "Your total turnover from "+info.custom_promo_code.replace("_", " ")+" is only "+FormatNumber(String.valueOf(checker.total))+". To qualify, it must be at least "+FormatNumber(String.valueOf(info.custom_promo_turnover))+" or higher.");
+                    mainObj.put("errorcode", "400");
+                    out.print(mainObj);
+                    return;
+                }
+               
             }else if(info.custom_promo_rollover > 0 && amount < info.custom_promo_rollover){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(info.custom_promo_rollover))+" or greater than total rollover");

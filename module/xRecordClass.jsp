@@ -128,7 +128,7 @@
 
 <%!public class AccountInfo{
     public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name, promo_active_code, promo_active_name;
-    public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website;
+    public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website, newdepositdate;
     public double commissionrate, creditbal, videomincredit, minbet, maxbet, bonus_amount, newdeposit, totaldeposit, telco_deposit, telco_withdraw;
     public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover, custom_promo_totalbet;
     public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
@@ -202,6 +202,8 @@
 
                 this.newdeposit = rst.getDouble("newdeposit");
                 this.totaldeposit = rst.getDouble("totaldeposit");
+                this.newdepositdate = rst.getString("newdepositdate");
+
                 this.telco_deposit = rst.getDouble("telco_deposit");
                 this.telco_withdraw = rst.getDouble("telco_withdraw");
                 this.bonus_date = rst.getString("bonus_date");
@@ -763,6 +765,33 @@
                 this.approval = rst.getBoolean("approval");
                 this.cockfight = rst.getBoolean("cockfight");
                 this.slotgame = rst.getBoolean("slotgame");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-promotion",e.toString());
+        }
+    }
+}%>
+
+<%!public class TotalBetsChecker{
+    public boolean qualified;
+    public double total;
+    public TotalBetsChecker(String accountid, String date_deposit, double amount_deposit){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("select sum(total_bet) as total from (select ifnull(sum(bet_amount),0) as total_bet FROM tblfightbets2 where accountid='"+accountid+"' and datetrn >= '"+date_deposit+"' union all "
+                        + " select ifnull(sum(if(promo, 0, totalbets)),0) as total_bet from tblgamesummary where accountid='"+accountid+"' and gamedate >= '"+date_deposit+"') as x;");
+            while(rst.next()){
+                this.total = rst.getDouble("total");
+                if(this.total > 0){
+                    if(total >= amount_deposit){
+                         this.qualified = true;
+                    }else{
+                         this.qualified = false;
+                    }
+                }else{
+                     this.qualified = false;
+                }
             }
             rst.close();
         }catch(SQLException e){

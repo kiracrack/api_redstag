@@ -96,6 +96,8 @@ try{
         String appreference = request.getParameter("appreference");
         double amount = Double.parseDouble(request.getParameter("amount"));
 
+        commission = (commission.length() == 0 ? "0" : commission);
+        
         if(CountQry("tblsubscriber", "username='"+username+"'  and accountid<>'"+accountid+"'") > 0) {
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Account username " + username + " is already exists!");

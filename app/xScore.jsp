@@ -105,15 +105,15 @@ try{
 
                 if(info.isonlineagent){
                     if(info.totaldeposit == 0){
-                        ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
+                        ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", newdepositdate=current_timestamp, totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                     }else{
                         if(info.rebate_available){
-                            ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
+                            ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+",newdepositdate=current_timestamp, totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                         }else{
                             if(isRebateDateValid(accountid)){
-                                ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit=(totaldeposit+"+dep.amount+") where accountid='"+accountid+"' and bonus_date=current_date");
+                                ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+",newdepositdate=current_timestamp, totaldeposit=(totaldeposit+"+dep.amount+") where accountid='"+accountid+"' and bonus_date=current_date");
                             }else{
-                                ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+", totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
+                                ExecuteQuery("UPDATE tblsubscriber set newdeposit="+dep.amount+",newdepositdate=current_timestamp, totaldeposit="+dep.amount+", bonus_date=current_date where accountid='"+accountid+"'");
                             }
                         } 
                     }
