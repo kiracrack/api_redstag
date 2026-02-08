@@ -172,7 +172,7 @@ try{
         else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover;
 
         ClearExistingBonus(bonus.accountid);
-        ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+bonus.bonuscode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+bonus.accountid+"'");
+        ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+bonus.bonuscode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+",newdepositdate=current_timestamp where accountid='"+bonus.accountid+"'");
         ExecuteQuery("UPDATE tblbonus set approved=1 where id='"+id+"'");
         ExecuteSetScore(info.operatorid, sessionid, bonus.appreference, bonus.accountid, info.fullname, "ADD", bonus.amount, rchar(promo.title), bonus.accountid);
         SendBonusNotification(bonus.accountid, "You have received "+String.format("%,.2f", bonus.amount) + " from " + rchar(promo.title), bonus.amount);

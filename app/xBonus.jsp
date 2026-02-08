@@ -312,7 +312,7 @@ try{
             bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
 
             TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
-            if(!checker.qualified){
+            if(promo.mindeposit > 0 && !checker.qualified){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met.");
                 mainObj.put("errorcode", "100");
@@ -332,7 +332,7 @@ try{
                 
                 ClearExistingBonus(userid);
                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=1, dateclaimed=current_timestamp");
-                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+" where accountid='"+userid+"'");
+                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+",newdepositdate=current_timestamp, where accountid='"+userid+"'");
                 ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
                 SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
                 
