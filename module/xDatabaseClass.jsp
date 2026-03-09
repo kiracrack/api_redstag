@@ -240,6 +240,36 @@
  %>
 <%-- endregion --%>
 
+<%-- priority command executor --%>
+<%!public int ExecutePriority(String command) {
+    int i = 0; // default fail
+    try {
+        redstag_result result = new redstag_result();
+        result.disconnect();
+        Connection conn = result.connect();
+        Statement state = conn.createStatement();
+
+        int rowsAffected = state.executeUpdate(command);
+        if (rowsAffected >= 0) {
+            i = 1; // success
+        }
+
+        state.close();
+        conn.close();
+    } catch (SQLException e) {
+        logError("priority-sql-exception", e.toString() + "(" + command + ")");
+        i = 0;
+    } catch (Exception e) {
+        ExecutePriority(command);
+        logError("priority-exception", e.toString() + "(" + command + ")");
+        i = 0;
+    }
+    return i;
+}
+%>
+<%-- endregion --%>
+
+
 <%-- normal command executor --%>
 <%!public void ExecuteQuery(String command) {
     Random rand = new Random();

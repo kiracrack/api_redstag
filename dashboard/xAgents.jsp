@@ -377,6 +377,44 @@ try{
         mainObj.put("message", "social media bonus successfully activated to account " + info.fullname.toLowerCase());
         out.print(mainObj);
         
+    }else if(x.equals("clear_active_promo")){
+        String accountid = request.getParameter("accountid");
+        String fullname = request.getParameter("fullname");
+        String appreference = request.getParameter("appreference");
+
+        AccountInfo info = new AccountInfo(accountid);
+        String transactionno = getOperatorSeriesID(info.operatorid, "series_credit_transfer");
+
+        if(info.custom_promo_enabled){
+            if(info.creditbal > 0) LogLedger(accountid, sessionid, appreference, transactionno, "forfeited bonus credit", info.creditbal, 0, userid);
+            
+            ClearExistingBonus(accountid);
+            LogActivity(userid,"cleared active promo of " + accountid + " " + fullname); 
+
+            mainObj.put("status", "OK");
+            mainObj.put("message", "Active promo successfully cleared");
+            out.print(mainObj);
+        }else{
+             if(info.iscashaccount && info.ispromoactive){
+                if(info.creditbal > 0){
+                    LogLedger(accountid, sessionid, appreference, transactionno, "forfeited bonus credit", info.creditbal, 0, userid);
+                    ExecuteQuery("insert into tblbonusreturn set accountid='"+accountid+"', operatorid='"+info.operatorid+"', bonus_code='"+info.promo_active_code+"', bonus_type='"+info.promo_active_name+"', amount='"+info.creditbal+"',datetrn=current_timestamp");
+                }
+                
+                ClearExistingBonus(accountid);
+                LogActivity(userid,"cleared active promo of " + accountid + " " + fullname); 
+
+                mainObj.put("status", "OK");
+                mainObj.put("message", "Active promo successfully cleared");
+                out.print(mainObj);
+             }else{
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "No active promo to this account");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+             }
+        }
+ 
     }else{
         mainObj.put("status", "ERROR");
         mainObj.put("message","request not valid");

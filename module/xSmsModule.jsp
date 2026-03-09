@@ -18,7 +18,7 @@
         this.message = message;
     }
     public void run() {
-        SendQueue(appreference, mobilenumber, otpcode, message);
+        SendQueueMY(appreference, mobilenumber, otpcode, message);
     }
  }
  %>
@@ -31,6 +31,7 @@
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("api_key", "462_cgK9xSn13WIuIX1oDK_kPPcQCd");
         params.put("api_secret", "ASchfEmbr33n__qZRIIVsezW_kfIoq");
+        params.put("from", "DNEXTGEN");
         params.put("to", mobilenumber);
         params.put("text", "RedStag: " + message);
 

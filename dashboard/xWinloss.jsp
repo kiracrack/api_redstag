@@ -144,6 +144,54 @@ try{
         mainObj.put("message", "Selected game successfully disable!");
         out.print(mainObj);
 
+
+    }else if(x.equals("general_report")){
+        String operatorid = request.getParameter("operatorid");
+        boolean include_casino = Boolean.parseBoolean(request.getParameter("include_casino"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        GeneralReport rpt = new GeneralReport(operatorid, include_casino, datefrom, dateto);
+        String sabong = FormatCurrency(String.valueOf(-rpt.sabong));
+        String casino = FormatCurrency(String.valueOf(-rpt.casino));
+        
+       
+        JSONArray objarray = new JSONArray();
+        objarray.add(CreateObj("Total Sabong Profit", String.valueOf((rpt.sabong == 0 ? "0.00" : sabong))));
+        if(include_casino) objarray.add(CreateObj("Total Casino Profit", String.valueOf((rpt.casino == 0 ? "0.00" : casino))));
+        
+        double total_profit = (-rpt.sabong) + (-rpt.casino);
+        String profit = FormatCurrency(String.valueOf(total_profit));
+        objarray.add(CreateObj("Total Profit", String.valueOf((total_profit == 0 ? "0.00" : profit))));
+        objarray.add(CreateObj(" ", ""));
+        
+        String regular_bonus = FormatCurrency(String.valueOf(-rpt.regular_bonus));
+        String bonus_withdraw = FormatCurrency(String.valueOf(-rpt.bonus_withdraw));
+        String bonus_return = FormatCurrency(String.valueOf(rpt.bonus_return));
+        String forfeited_bonus = FormatCurrency(String.valueOf(rpt.forfeited_bonus));
+
+
+        objarray.add(CreateObj("Regular Bonus Claimed", String.valueOf((rpt.regular_bonus == 0 ? "0.00" : regular_bonus))));
+        objarray.add(CreateObj("Custom Bonus Withdraw", String.valueOf((rpt.bonus_withdraw == 0 ? "0.00" : bonus_withdraw))));
+        objarray.add(CreateObj("Returned Bonus", (rpt.bonus_return == 0 ? "0.00" : bonus_return)));
+        objarray.add(CreateObj("Forfeited Bonus", (rpt.forfeited_bonus == 0 ? "0.00" : forfeited_bonus)));
+        
+        double total_bonus = (-rpt.regular_bonus) + (-rpt.bonus_withdraw) + rpt.bonus_return +  rpt.forfeited_bonus;
+        String bonus = FormatCurrency(String.valueOf(total_bonus));
+        objarray.add(CreateObj("Total Net Bonus", (total_bonus == 0 ? "0.00" : bonus)));
+        objarray.add(CreateObj(" ", ""));
+
+        double total_net = Val(total_profit) - (-Val(total_bonus));
+        String net = FormatCurrency(String.valueOf(total_net));
+        objarray.add(CreateObj("Total Net Profit", (total_net == 0 ? "0.00" : net)));
+
+
+        mainObj.put("status", "OK");
+        mainObj.put("general_report", objarray);        
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+        
+
     }else{
         mainObj.put("status", "ERROR");
         mainObj.put("message","request not valid");
@@ -181,5 +229,13 @@ try{
 
 <%!public void DisableMasterAgent(String accountid) {
     ExecuteQuery("DELETE from tblwinlossfilter where accountid='" + accountid + "'");
+}
+%>
+
+ <%!public JSONObject CreateObj(String sabong, String total) {
+    JSONObject obj = new JSONObject();
+    obj.put("particular", sabong);
+    obj.put("val", total);
+    return obj;
 }
 %>

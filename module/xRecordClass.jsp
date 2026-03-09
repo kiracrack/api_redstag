@@ -130,7 +130,7 @@
     public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name, promo_active_code, promo_active_name;
     public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website, newdepositdate;
     public double commissionrate, creditbal, videomincredit, minbet, maxbet, bonus_amount, newdeposit, totaldeposit, telco_deposit, telco_withdraw;
-    public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover, custom_promo_totalbet;
+    public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover;
     public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
     public boolean telco_enabled, welcome_enabled, daily_enabled, socialmedia_available, socialmedia_enabled, winstrike_available, winstrike_enabled, weekly_loss_enabled, special_bonus_enabled, custom_promo_enabled;
     public boolean ispromoactive;
@@ -233,7 +233,6 @@
                 this.custom_promo_maxwd = rst.getDouble("custom_promo_maxwd");
                 this.custom_promo_turnover = rst.getDouble("custom_promo_turnover");
                 this.custom_promo_rollover = rst.getDouble("custom_promo_rollover");
-                this.custom_promo_totalbet = rst.getDouble("custom_promo_totalbet");
 
                 this.ispromoactive = (this.rebate_enabled  || this.midnight_enabled || this.weekly_loss_enabled || this.special_bonus_enabled || this.welcome_enabled || this.daily_enabled || this.socialmedia_enabled || this.winstrike_enabled || this.custom_promo_enabled );
                 
@@ -780,7 +779,7 @@
         try{
             ResultSet rst = null; 
             rst =  SelectQuery("select sum(total_bet) as total from (select ifnull(sum(bet_amount),0) as total_bet FROM tblfightbets2 where accountid='"+accountid+"' and datetrn >= '"+date_deposit+"' union all "
-                        + " select ifnull(sum(if(promo, 0, totalbets)),0) as total_bet from tblgamesummary where accountid='"+accountid+"' and gamedate >= '"+date_deposit+"') as x;");
+                        + " select ifnull(sum(totalbets),0) as total_bet from tblgamesummary where accountid='"+accountid+"' and gamedate >= '"+date_deposit+"') as x;");
             while(rst.next()){
                 this.total = rst.getDouble("total");
                 if(this.total > 0){
@@ -1044,3 +1043,68 @@
         }
     }
 }%>
+
+
+<%!public class GeneralReport{
+    public double sabong, casino, forfeited_bonus, return_bonus, regular_bonus, bonus_return, bonus_withdraw;
+    public GeneralReport(String operatorid, boolean include_casino, String datefrom, String dateto){
+        try{
+            ResultSet rst_sabong = null; 
+            rst_sabong =  SelectQuery("select if(!online, round(actual*0.11,2), actual) as winloss from (select sum(ifnull(if(promo, 0, win_amount),0)) - sum(ifnull(if(promo, 0, lose_amount),0)) as actual,if(masteragentid='101-00019',true,false) as online from "
+                                    + " tblfightbets2 as a where operatorid='"+operatorid+"' and masteragentid in (select accountid from tblwinlossfilter) and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
+            while(rst_sabong.next()){
+                this.sabong += rst_sabong.getDouble("winloss") ;
+            }
+            rst_sabong.close();
+
+            if(include_casino){
+                ResultSet rst_casino = null; 
+                rst_casino =  SelectQuery("select if(!online, round(actual*0.11,2), actual) as  winloss from (select ifnull(sum(if(promo, 0, winloss)),0) as 'Actual', if(masteragentid='101-00019',true,false) as online from "
+                                    + " tblgamesummary as a where operatorid='"+operatorid+"' and masteragentid in (select accountid from tblwinlossfilter) and date_format(gamedate,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"' group by masteragentid) as x");
+                while(rst_casino.next()){
+                    this.casino += rst_casino.getDouble("winloss") ;
+                }
+                rst_casino.close();
+            }else{
+                this.casino = 0;
+            }
+           
+
+            ResultSet rst_forfeited = null; 
+            rst_forfeited =  SelectQuery("select sum(amount) as total from tblbonusreturn as a where bonus_code not in (select promocode from tblpromotion where build_in=0) and operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_forfeited.next()){
+                this.forfeited_bonus = rst_forfeited.getDouble("total") ;
+            }
+            rst_forfeited.close();
+
+            ResultSet rst_regular = null; 
+            rst_regular =  SelectQuery("select sum(amount) as total from tblbonus as a where operatorid='"+operatorid+"' and bonuscode not in (select promocode from tblpromotion where build_in=0) and date_format(dateclaimed,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_regular.next()){
+                this.regular_bonus = rst_regular.getDouble("total") ;
+            }
+            rst_regular.close();
+
+            ResultSet rst_return = null; 
+            rst_return =  SelectQuery("select sum(amount-cashout) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
+                              + " and (promocode in (select promocode from tblpromotion where build_in=1) or promocode='telco_deposit') "
+                              + " and operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_return.next()){
+                this.bonus_return = rst_return.getDouble("total") ;
+            }
+            rst_return.close();
+
+            ResultSet rst_withdraw = null; 
+            rst_withdraw =  SelectQuery("select sum(cashout) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
+                              + " and promocode in (select promocode from tblpromotion where build_in=0) "
+                              + " and operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_withdraw.next()){
+                this.bonus_withdraw = rst_withdraw.getDouble("total") ;
+            }
+            rst_withdraw.close();
+
+        }catch(SQLException e){
+            logError("class-image-info",e.toString());
+        }
+    }
+}%>
+

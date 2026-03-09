@@ -181,12 +181,22 @@ try{
                 ExecuteQuery("UPDATE tblgamelogs_funky set winAmount="+win_amount+", betStatus='"+status+"', voucherId='"+voucherid+"', effectiveStake="+effective+",freeSpinMainBet='"+freeSpinMainBet+"', datesettled=current_timestamp" +
                                     " where operatorid='"+info.operatorid+"' and playerId='"+userid+"' and refNo='"+reference+"' "); 
 
-                ExecuteQuery("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+info.operatorid+"' and accountid='"+userid+"' and provider='"+provider+"' and reference='"+reference+"' "); 
-
-                if(info.custom_promo_enabled && info.custom_promo_rollover > 0){
-                    ExecuteResult("UPDATE tblsubscriber set custom_promo_totalbet = custom_promo_totalbet + "+bet_amount+" where accountid='"+userid+"'");
+ 
+                int i = UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                if(i == 0){
+                    Thread.sleep(100); 
+                    int m = UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                    if(m == 0){
+                        Thread.sleep(100);
+                        int n =UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                         if(n == 0){
+                            Thread.sleep(100);
+                            UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                        }
+                    }
                 }
-                
+
+
                 JSONObject subObj = new JSONObject();
                 subObj.put("refNo", reference);
                 subObj.put("balance", getLatestCreditBalance(userid));
@@ -303,6 +313,12 @@ try{
     ExecuteQuery("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='funky',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", promo="+promo+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
   }
  %> 
+
+ <%!public int UpdateGameSummary(String operatorid, String userid, String provider, String reference, double win_amount) {
+    return ExecutePriority("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+operatorid+"' and accountid='"+userid+"' and provider='"+provider+"' and reference='"+reference+"' "); 
+  }
+ %> 
+
  
  <%!public String getJson(JSONObject obj, String str) {
         if(obj.get(str) == null){
