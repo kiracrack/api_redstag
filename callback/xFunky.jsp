@@ -182,16 +182,16 @@ try{
                                     " where operatorid='"+info.operatorid+"' and playerId='"+userid+"' and refNo='"+reference+"' "); 
 
  
-                int i = UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                int i = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
                 if(i == 0){
                     Thread.sleep(100); 
-                    int m = UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                    int m = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
                     if(m == 0){
                         Thread.sleep(100);
-                        int n =UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                        int n =UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
                          if(n == 0){
                             Thread.sleep(100);
-                            UpdateGameSummary(info.operatorid, userid, provider, reference, win_amount);
+                            UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
                         }
                     }
                 }
@@ -314,8 +314,8 @@ try{
   }
  %> 
 
- <%!public int UpdateGameSummary(String operatorid, String userid, String provider, String reference, double win_amount) {
-    return ExecutePriority("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+operatorid+"' and accountid='"+userid+"' and provider='"+provider+"' and reference='"+reference+"' "); 
+ <%!public int UpdateGameSummary(String operatorid, String userid, String provider, String gameId, String reference, double win_amount) {
+    return ExecutePriority("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+operatorid+"' and accountid='"+userid+"' and gameid='"+gameId+"' and provider='"+provider+"' and reference='"+reference+"' "); 
   }
  %> 
 
