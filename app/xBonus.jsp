@@ -95,8 +95,8 @@ try{
             String appreference = request.getParameter("appreference");
             
             DateWeekly dw = new DateWeekly();
-            ReferralBonus bonus_prev = new ReferralBonus(userid, dw.current_week_from, dw.current_week_to);
-
+            ReferralBonus bonus_prev = new ReferralBonus(userid, dw.prev_week_from, dw.prev_week_to);
+            
             if(bonus_prev.amount == 0){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Referral bonus not available! Please Refresh your account");
