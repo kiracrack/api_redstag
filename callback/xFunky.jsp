@@ -318,13 +318,3 @@ try{
     return ExecutePriority("UPDATE tblgamesummary set totalwin="+win_amount+", winloss=("+win_amount+"-totalbets) where operatorid='"+operatorid+"' and accountid='"+userid+"' and gameid='"+gameId+"' and provider='"+provider+"' and reference='"+reference+"' "); 
   }
  %> 
-
- 
- <%!public String getJson(JSONObject obj, String str) {
-        if(obj.get(str) == null){
-            return "";
-        }else{
-            return obj.get(str).toString();
-        }
-  }
-%>

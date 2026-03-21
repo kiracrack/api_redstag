@@ -345,6 +345,11 @@
   }
 %>
 
+<%!public boolean isDepositExists(String userid) {
+    return CountQry("tbldeposits", "accountid='"+userid+"' and confirmed=1 and cancelled=0") > 0;
+  }
+%>
+
 <%!public boolean isDepositAlreadyConfirmed(String userid, String refno) {
     return CountQry("tbldeposits", "accountid='"+userid+"' and refno='"+refno+"' and confirmed=1 and cancelled=0") > 0;
   }

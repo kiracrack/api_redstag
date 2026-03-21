@@ -346,6 +346,7 @@ try{
             promo_name = "social media bonus";
 
          }else if(info.custom_promo_enabled){
+            amount = amount - info.custom_promo_bonus;
             if(info.custom_promo_maxwd > 0){
                 cashout = (amount <= info.custom_promo_maxwd ? amount : info.custom_promo_maxwd);
             }else{

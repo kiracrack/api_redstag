@@ -92,12 +92,34 @@ try{
         String max_claim = request.getParameter("max_claim");
         String claim_limit = request.getParameter("claim_limit");
 
+        //update added march 20, 2026
+        boolean first_deposit = Boolean.parseBoolean(request.getParameter("first_deposit"));
+        boolean date_availability = Boolean.parseBoolean(request.getParameter("date_availability"));
+        String date_option = request.getParameter("date_option");
+
+        JSONParser parser = new JSONParser();
+        JSONObject obj = (JSONObject) parser.parse(date_option.trim());
+        boolean date_mon = Boolean.parseBoolean(getJson(obj,"date_mon"));
+        boolean date_tue = Boolean.parseBoolean(getJson(obj,"date_tue"));
+        boolean date_wed = Boolean.parseBoolean(getJson(obj,"date_wed"));
+        boolean date_thu = Boolean.parseBoolean(getJson(obj,"date_thu"));
+        boolean date_fri = Boolean.parseBoolean(getJson(obj,"date_fri"));
+        boolean date_sat = Boolean.parseBoolean(getJson(obj,"date_sat"));
+        boolean date_sun = Boolean.parseBoolean(getJson(obj,"date_sun"));
+
+        boolean time_range = Boolean.parseBoolean(request.getParameter("time_range"));
+        String time_start = request.getParameter("time_start");
+        String time_end = request.getParameter("time_end");
+        //end
+
         boolean fix_amount = Boolean.parseBoolean(request.getParameter("fix_amount"));
         boolean approval = Boolean.parseBoolean(request.getParameter("approval"));
         boolean cockfight = Boolean.parseBoolean(request.getParameter("cockfight"));
         boolean slotgame = Boolean.parseBoolean(request.getParameter("slotgame"));
 
-        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',rollover='"+rollover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', approval="+approval+", cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
+        ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',rollover='"+rollover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', "
+                    + " first_deposit="+first_deposit+", date_availability="+date_availability+",date_mon="+date_mon+",date_tue="+date_tue+",date_wed="+date_wed+",date_thu="+date_thu+",date_fri="+date_fri+",date_sat="+date_sat+",date_sun="+date_sun+",time_range="+time_range+",time_start='"+time_start+"',time_end='"+time_end+"', "
+                    + " approval="+approval+", cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
        
         mainObj.put("status", "OK");
         mainObj.put("message", "Promo successfully updated!");

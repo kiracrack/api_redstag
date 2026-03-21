@@ -110,6 +110,27 @@ public String sqlNewAccountQuery = "select *, date_format(dateregister, '%M %d, 
                 + " when claim_limit='monthly' then date_format(bonusdate,'%Y-%m')=date_format(current_date,'%Y-%m') "
                 + " when claim_limit='weekly' then WEEK(bonusdate, 1) > WEEK(CURDATE() - INTERVAL 1 WEEK, 1) "
                 + " when claim_limit='daily' then date_format(bonusdate,'%Y-%m-%d')=date_format(current_date,'%Y-%m-%d') "
-                + " when claim_limit='none' then 0 end where a.build_in=0 and a.disabled=0 group by promocode;";
+                + " when claim_limit='none' then 0 end where a.build_in=0 and a.disabled=0 and ( "
+                + "        date_availability = 0 "
+                + "        OR ( "
+                + "                date_availability = 1 "
+                + "                AND ( "
+                + "                (DAYOFWEEK(CURDATE()) = 2 AND date_mon = 1) OR "
+                + "                (DAYOFWEEK(CURDATE()) = 3 AND date_tue = 1) OR "
+                + "                (DAYOFWEEK(CURDATE()) = 4 AND date_wed = 1) OR "
+                + "                (DAYOFWEEK(CURDATE()) = 5 AND date_thu = 1) OR "
+                + "                (DAYOFWEEK(CURDATE()) = 6 AND date_fri = 1) OR "
+                + "                (DAYOFWEEK(CURDATE()) = 7 AND date_sat = 1) OR "
+                + "                (DAYOFWEEK(CURDATE()) = 1 AND date_sun = 1) "
+                + "                ) "
+                + "        ) "
+                + "        ) "
+                + "        AND ( "
+                + "        time_range = 0 "
+                + "        OR ( "
+                + "                time_range = 1 "
+                + "                AND CURTIME() BETWEEN time_start AND time_end "
+                + "        ) "
+                + "        ) group by promocode;";
 }
 %>

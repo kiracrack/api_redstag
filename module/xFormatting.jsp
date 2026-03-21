@@ -27,6 +27,15 @@
 }
 %>
 
+ <%!public String getJson(JSONObject obj, String str) {
+        if(obj.get(str) == null){
+            return "";
+        }else{
+            return obj.get(str).toString();
+        }
+  }
+%>
+
 
 <%!public String QuoteValue(String str) {
     return str.replace("\"","");

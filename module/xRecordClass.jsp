@@ -130,7 +130,7 @@
     public String fullname, username, mobilenumber, operatorid, sessionid, tokenid, masteragentid, agentid, agentname, freeaccountid, referralcode, custom_promo_code, custom_promo_name, promo_active_code, promo_active_name;
     public String blockedreason, imageurl, ipaddress, date_registered, date_now, time_now, bonus_date, winstrike_eventid, winstrike_selection, winstrike_category, winstrike_type, api_website, newdepositdate;
     public double commissionrate, creditbal, videomincredit, minbet, maxbet, bonus_amount, newdeposit, totaldeposit, telco_deposit, telco_withdraw;
-    public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover;
+    public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover, custom_promo_bonus;
     public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
     public boolean telco_enabled, welcome_enabled, daily_enabled, socialmedia_available, socialmedia_enabled, winstrike_available, winstrike_enabled, weekly_loss_enabled, special_bonus_enabled, custom_promo_enabled;
     public boolean ispromoactive;
@@ -144,6 +144,7 @@
                                 " (SELECT maxbet FROM tbloperator where companyid=a.operatorid) as maxbet, " +
                                 " (SELECT totalonline FROM tbloperator where companyid=a.operatorid) as totalonline, " +
                                 " ifnull(photourl,'') as imageurl, " +
+                                " ifnull(newdepositdate, '') as newdepdate, " +
                                 " if(totaldeposit >= 150 and (rebate_enabled=0 or creditbal < 1) and bonus_date = (current_date - INTERVAL 1 DAY), true, false) as rebate_available, " +
                                 " if(current_time between '00:00:01' and '05:00:00', true, false) as midnight_available, " +
                                 " if(masteragentid = (select ownersaccountid from tbloperator where companyid=a.operatorid), true, false) as isonlineagent,"  + 
@@ -202,7 +203,8 @@
 
                 this.newdeposit = rst.getDouble("newdeposit");
                 this.totaldeposit = rst.getDouble("totaldeposit");
-                this.newdepositdate = rst.getString("newdepositdate");
+                this.newdepositdate = rst.getString("newdepdate");
+                
 
                 this.telco_deposit = rst.getDouble("telco_deposit");
                 this.telco_withdraw = rst.getDouble("telco_withdraw");
@@ -233,6 +235,7 @@
                 this.custom_promo_maxwd = rst.getDouble("custom_promo_maxwd");
                 this.custom_promo_turnover = rst.getDouble("custom_promo_turnover");
                 this.custom_promo_rollover = rst.getDouble("custom_promo_rollover");
+                this.custom_promo_bonus = rst.getDouble("custom_promo_bonus");
 
                 this.ispromoactive = (this.rebate_enabled  || this.midnight_enabled || this.weekly_loss_enabled || this.special_bonus_enabled || this.welcome_enabled || this.daily_enabled || this.socialmedia_enabled || this.winstrike_enabled || this.custom_promo_enabled );
                 
@@ -741,7 +744,7 @@
 
 <%!public class PromotionInfo{
     public String title, banner_url, claim_limit;
-    public boolean build_in, fix_amount, approval, cockfight, slotgame;
+    public boolean build_in, fix_amount, first_deposit, approval, cockfight, slotgame;
     public double amount, turnover, rollover, mindeposit, maxwithdraw, max_claim;
     public PromotionInfo(String promocode){
         try{
@@ -760,6 +763,8 @@
                 
                 this.build_in = rst.getBoolean("build_in");
                 this.fix_amount = rst.getBoolean("fix_amount");
+
+                this.first_deposit = rst.getBoolean("first_deposit");
 
                 this.approval = rst.getBoolean("approval");
                 this.cockfight = rst.getBoolean("cockfight");
