@@ -107,6 +107,10 @@ try{
         boolean date_sat = Boolean.parseBoolean(getJson(obj,"date_sat"));
         boolean date_sun = Boolean.parseBoolean(getJson(obj,"date_sun"));
 
+        boolean date_range = Boolean.parseBoolean(request.getParameter("date_range"));
+        String date_from = request.getParameter("date_from");
+        String date_to = request.getParameter("date_to");
+
         boolean time_range = Boolean.parseBoolean(request.getParameter("time_range"));
         String time_start = request.getParameter("time_start");
         String time_end = request.getParameter("time_end");
@@ -118,7 +122,9 @@ try{
         boolean slotgame = Boolean.parseBoolean(request.getParameter("slotgame"));
 
         ExecuteQuery("UPDATE tblpromotion set fix_amount="+fix_amount+", amount='"+amount+"',turnover='"+turnover+"',rollover='"+rollover+"',mindeposit='"+mindeposit+"',maxdeposit='"+maxdeposit+"',maxwithdraw='"+maxwithdraw+"',max_claim='"+max_claim+"',claim_limit='"+claim_limit+"', "
-                    + " first_deposit="+first_deposit+", date_availability="+date_availability+",date_mon="+date_mon+",date_tue="+date_tue+",date_wed="+date_wed+",date_thu="+date_thu+",date_fri="+date_fri+",date_sat="+date_sat+",date_sun="+date_sun+",time_range="+time_range+",time_start='"+time_start+"',time_end='"+time_end+"', "
+                    + " first_deposit="+first_deposit+", date_availability="+date_availability+",date_mon="+date_mon+",date_tue="+date_tue+",date_wed="+date_wed+",date_thu="+date_thu+",date_fri="+date_fri+",date_sat="+date_sat+",date_sun="+date_sun+", "
+                    + (date_range ? " date_range=1,date_from='"+date_from+"',date_to='"+date_to+"', " : " date_range=0,date_from=null,date_to=null, ") 
+                    + " time_range="+time_range+",time_start='"+time_start+"',time_end='"+time_end+"', "
                     + " approval="+approval+", cockfight="+cockfight+", slotgame="+slotgame+" where id='"+promoid+"'");
        
         mainObj.put("status", "OK");
