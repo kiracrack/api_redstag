@@ -83,8 +83,29 @@ try{
                 }
                 LogTransaction(info.operatorid, userid, provider, sessionId, gameId, bet, win, tradeId, "OK");
                 ExecuteQuery("insert into tblgamelogs_infinity set operatorid='"+info.operatorid+"', login='"+userid+"', hall='"+hall+"', `key`='"+key+"', sessionId='"+sessionId+"', bet="+bet+", win="+win+", winLose="+winLose+", tradeId='"+tradeId+"', betInfo='"+betInfo+"', gameId='"+gameId+"', gamename='"+game.gamename+"', matrix='"+matrix+"', gamedate='"+datetrn+"', datetrn=current_timestamp, WinLines='"+WinLines+"', transactionno='"+transactionno+"'");
-                LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
                 
+                int i = LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
+                if(i == 0){
+                    Thread.sleep(500); 
+                    int m = LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
+                    if(m == 0){
+                        Thread.sleep(500);
+                        int n = LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
+                        if(n == 0){
+                            Thread.sleep(500);
+                            int p = LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
+                            if(p == 0){
+                                Thread.sleep(500);
+                                int q = LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
+                                if(q == 0){
+                                    Thread.sleep(500);
+                                    LogGameSummary(info.operatorid, sessionId, userid, info.fullname, info.masteragentid, info.agentid, gameId, game.gamename, tradeId, bet, win, winLose, info.custom_promo_enabled);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 mainObj.put("operationId", transactionno);
             }else{
                 mainObj.put("operationId", getTransactionNo(sessionId, bet, win, tradeId, betInfo, gameId, matrix));
@@ -148,8 +169,8 @@ try{
   }
 %>
 
- <%!public void LogGameSummary(String operatorid, String sessionid, String accountid, String fullname, String masteragentid, String agentid, String gameId, String gamename, String reference,  double bet,  double win,  double winloss, boolean promo) {
-    ExecuteQuery("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='infinity',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", promo="+promo+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
+ <%!public int LogGameSummary(String operatorid, String sessionid, String accountid, String fullname, String masteragentid, String agentid, String gameId, String gamename, String reference,  double bet,  double win,  double winloss, boolean promo) {
+    return ExecutePriority("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='infinity',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", promo="+promo+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
   }
  %> 
 

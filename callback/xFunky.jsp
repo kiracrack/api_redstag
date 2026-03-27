@@ -88,7 +88,28 @@ try{
 
                 LogTransaction(info.operatorid, userid, provider, sessionid, gamecode, bet, 0,reference, "R");
                 ExecuteQuery("insert into tblgamelogs_funky set operatorid='"+info.operatorid+"',playerId='"+userid+"', sessionId='"+sessionid+"', playerIp='"+playerIp+"', gameCode='"+gamecode+"', gameName='"+rchar(game.gamename)+"', gameProvider='"+gameprovider+"', refNo='"+reference+"', stake="+bet+", winAmount=0, betStatus='R', voucherId='"+voucherid+"', effectiveStake='',freeSpinMainBet='', datetrn=current_timestamp");    
-                LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                
+                int i = LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                if(i == 0){
+                    Thread.sleep(500); 
+                    int m = LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                    if(m == 0){
+                        Thread.sleep(500);
+                        int n = LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                        if(n == 0){
+                            Thread.sleep(500);
+                            int p = LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                            if(p == 0){
+                                Thread.sleep(500);
+                                int q = LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                                if(q == 0){
+                                    Thread.sleep(500);
+                                    LogGameSummary(info.operatorid, sessionid, userid, info.fullname, info.masteragentid, info.agentid, gamecode, rchar(game.gamename), reference,  bet,  0,  0, info.custom_promo_enabled);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 JSONObject subObj = new JSONObject();
                 subObj.put("balance", getLatestCreditBalance(userid));
@@ -181,21 +202,29 @@ try{
                 ExecuteQuery("UPDATE tblgamelogs_funky set winAmount="+win_amount+", betStatus='"+status+"', voucherId='"+voucherid+"', effectiveStake="+effective+",freeSpinMainBet='"+freeSpinMainBet+"', datesettled=current_timestamp" +
                                     " where operatorid='"+info.operatorid+"' and playerId='"+userid+"' and refNo='"+reference+"' "); 
 
- 
-                int i = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                if(i == 0){
-                    Thread.sleep(100); 
-                    int m = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                    if(m == 0){
-                        Thread.sleep(100);
-                        int n =UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                         if(n == 0){
-                            Thread.sleep(100);
-                            UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                if(win_amount > 0){
+                    int i = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                    if(i == 0){
+                        Thread.sleep(500); 
+                        int m = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                        if(m == 0){
+                            Thread.sleep(500);
+                            int n = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                            if(n == 0){
+                                Thread.sleep(500);
+                                int p = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                                if(p == 0){
+                                    Thread.sleep(500);
+                                    int q = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                                    if(q == 0){
+                                        Thread.sleep(500);
+                                        UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
 
                 JSONObject subObj = new JSONObject();
                 subObj.put("refNo", reference);
@@ -309,8 +338,8 @@ try{
   }
  %>
 
- <%!public void LogGameSummary(String operatorid, String sessionid, String accountid, String fullname, String masteragentid, String agentid, String gameId, String gamename, String reference,  double bet,  double win,  double winloss, boolean promo) {
-    ExecuteQuery("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='funky',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", promo="+promo+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
+ <%!public int LogGameSummary(String operatorid, String sessionid, String accountid, String fullname, String masteragentid, String agentid, String gameId, String gamename, String reference,  double bet,  double win,  double winloss, boolean promo) {
+    return ExecutePriority("insert into tblgamesummary set operatorid='"+operatorid+"', sessionid='"+sessionid+"', provider='funky',accountid='"+accountid+"', fullname='"+rchar(fullname)+"',masteragentid='"+masteragentid+"',agentid='"+agentid+"',totalbets="+bet+", totalwin="+win+", winloss="+winloss+", promo="+promo+", gameid='"+gameId+"', gamename='"+gamename+"', reference='"+reference+"', gamedate=current_timestamp");    
   }
  %> 
 

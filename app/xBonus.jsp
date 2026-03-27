@@ -175,12 +175,22 @@ try{
                 return;
             }
 
+            TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
+            if(!checker.qualified){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met.");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+            }
+
+
             double amount = info.totaldeposit * 0.08;
             if(amount > 1688) amount = 1688;
             
             ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='8% daily rebate bonus', bonuscode='rebate', bonusdate='" +info.bonus_date+ "', amount="+amount+", dateclaimed=current_timestamp");
-            ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=1, bonus_amount="+amount+" where accountid='"+userid+"'");
+            ExecuteQuery("UPDATE tblsubscriber set rebate_enabled=1, bonus_amount="+amount+", newdeposit=0, newdepositdate=current_timestamp where accountid='"+userid+"'");
 
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", amount, "8% daily rebate bonus", userid);
             SendBonusNotification(userid, "You have received "+String.format("%,.2f", amount) + " from 8% rebate bonus", amount);
