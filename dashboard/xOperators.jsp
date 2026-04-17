@@ -212,6 +212,10 @@ try{
         String operatorid = request.getParameter("operatorid");
         String accountnumber = request.getParameter("accountnumber");
         String accountname = request.getParameter("accountname");
+        String max_daily_player = request.getParameter("max_daily_player");
+        String max_daily_total = request.getParameter("max_daily_total");
+        String num_days_cooldown = request.getParameter("num_days_cooldown");
+
         String qrcode = request.getParameter("qrcode");
         boolean enable = Boolean.parseBoolean(request.getParameter("enable"));
 
@@ -222,16 +226,26 @@ try{
         }
 
         if(edit){
-            ExecuteQuery("UPDATE tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', qrcode_url='"+qrcode_url+"', actived="+ enable + " where id='"+id+"'");
+            ExecuteQuery("UPDATE tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', max_daily_player='"+max_daily_player+"',max_daily_total='"+max_daily_total+"',num_days_cooldown='"+num_days_cooldown+"', qrcode_url='"+qrcode_url+"', actived="+ enable + " where id='"+id+"'");
             mainObj.put("message","Bank account successfully updated!");
         }else{
-            ExecuteQuery("INSERT INTO tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', qrcode_url='"+qrcode_url+"', actived="+ enable + ", dateadded=current_timestamp");
+            ExecuteQuery("INSERT INTO tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', max_daily_player='"+max_daily_player+"',max_daily_total='"+max_daily_total+"',num_days_cooldown='"+num_days_cooldown+"', qrcode_url='"+qrcode_url+"', actived="+ enable + ", dateadded=current_timestamp");
             mainObj.put("message","Bank account successfully added!");
         }
 
         mainObj.put("status", "OK");
         mainObj = LoadOperatorBank(mainObj);
         out.print(mainObj);
+    
+    }else if(x.equals("clear_bank_cooldown")){
+        String id = request.getParameter("id"); 
+         
+        ExecuteQuery("UPDATE tblbankaccounts set cooldown_expired=null where id='"+id+"'");
+
+        mainObj =LoadOperatorBank(mainObj);
+        mainObj.put("status", "OK");
+        mainObj.put("message","Cooldown successfully cleared");
+        out.print(mainObj);  
 
     }else if(x.equals("delete_bank")){
         String id = request.getParameter("id");

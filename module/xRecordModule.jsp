@@ -166,7 +166,7 @@
 <%!public JSONObject LoadOperatorBank(JSONObject mainObj) {
       mainObj = DBtoJson(mainObj, "operator_bank", "select *, (select logourl from tblremittance where code=a.remittanceid) as logourl, "
                                 + " (select remittancename from tblremittance where code=a.remittanceid) as bankname, "
-                                + " (select isbank from tblremittance where code=a.remittanceid) as isbank, if(actived, 'Active','Disabled') as status "
+                                + " (select isbank from tblremittance where code=a.remittanceid) as isbank, if(cooldown_expired IS NOT NULL,'Cooldown',if(actived, 'Active','Disabled')) as status "
                                 + " from tblbankaccounts as a where isoperator=1 and deleted=0");
       return mainObj;
  }

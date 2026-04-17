@@ -100,6 +100,9 @@ try{
                     return;
                 }
 
+                DepositCooldownChecker bank = new DepositCooldownChecker(dep.bankid);
+                if(bank.reached_limit) ExecuteQuery("UPDATE tblbankaccounts set cooldown_expired='"+ bank.date_cooldown_expiry +"' where id='"+dep.bankid+"'");
+                
                 ExecuteQuery("UPDATE tbldeposits set confirmed=1,dateconfirm=current_timestamp where refno='"+refno+"' and accountid='"+accountid+"'");
                 ClearExistingBonus(accountid);
 

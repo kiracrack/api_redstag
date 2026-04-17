@@ -282,11 +282,29 @@
   }
  %>
  
-<%!public JSONObject api_operator_bank(JSONObject mainObj,  String operatorid ) {
-    mainObj = DBtoJson(mainObj, "operator_bank", "select *, (select logourl from tblremittance where code=a.remittanceid) as logourl, " 
-                        + " (select remittancename from tblremittance where code=a.remittanceid) as bankname, " 
-                        + " (select isbank from tblremittance where code=a.remittanceid) as isbank "
-                        + " from tblbankaccounts as a where accountid='"+operatorid+"' and isoperator and actived=1 and deleted=0 order by accountid asc");
+<%!public JSONObject api_operator_bank(JSONObject mainObj, String accountid, String operatorid) {
+   mainObj = DBtoJson(mainObj, "operator_bank", "SELECT b.*, "
+                     + " (select logourl from tblremittance where code=b.remittanceid) as logourl, "
+                     + " (select remittancename from tblremittance where code=b.remittanceid) as bankname, "
+                     + " (select isbank from tblremittance where code=b.remittanceid) as isbank "
+                     + "    FROM tblbankaccounts b "
+                     + "    LEFT JOIN ( "
+                     + "       SELECT bankid, SUM(amount) AS player_total "
+                     + "       FROM tbldeposits "
+                     + "       WHERE accountid = '" + accountid + "' and confirmed=1 and cancelled=0 "
+                     + "          AND date_deposit = CURDATE() "
+                     + "       GROUP BY bankid "
+                     + "    ) p ON b.id = p.bankid "
+                     + "    LEFT JOIN ( "
+                     + "       SELECT bankid, SUM(amount) AS global_total "
+                     + "       FROM tbldeposits "
+                     + "       WHERE date_deposit = CURDATE() and confirmed=1 and cancelled=0 "
+                     + "       GROUP BY bankid "
+                     + "    ) g ON b.id = g.bankid "
+                     + "    WHERE b.isoperator and NOT b.deleted and b.actived and b.accountid='" + operatorid + "' "
+                     + "    AND (b.max_daily_player = 0 OR p.player_total IS NULL OR p.player_total < b.max_daily_player) "
+                     + "    AND (b.max_daily_total = 0 OR g.global_total IS NULL OR g.global_total < b.max_daily_total) "
+                     + "    AND (b.num_days_cooldown = 0 OR b.cooldown_expired IS NULL OR b.cooldown_expired <= CURDATE() - INTERVAL b.num_days_cooldown DAY) order by RAND() limit 3;");
     return mainObj;
  }
  %>

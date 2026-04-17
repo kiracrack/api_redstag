@@ -38,6 +38,16 @@ try{
     }
 
     if(x.equals("new_withdrawal")){
+        AccountInfo info = new AccountInfo(userid);
+        TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
+        if(!checker.qualified){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Your account is not eligible to withdraw. Please continue placing bets and reach rollover requirement of 1X to withdraw. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  );
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+        }
+
         if(isTherePendingWithdrawal(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "You have already a pending withdrawal! We only allow one withdrawal at a time");
@@ -154,6 +164,16 @@ try{
         }
 
         AccountInfo info = new AccountInfo(userid);
+
+        TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
+        if(!checker.qualified){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Your account is not eligible to withdraw. Please continue placing bets and reach rollover requirement of 1X to withdraw. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  );
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+        }
+
         if(info.rebate_enabled){
             double turnover = (info.bonus_amount * 3);
             if(info.creditbal < turnover){
@@ -275,17 +295,7 @@ try{
         }
 
         if(info.custom_promo_enabled){
-            if(info.custom_promo_turnover > 0 ){
-                TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
-                if(checker.total < info.custom_promo_turnover){
-                    mainObj.put("status", "ERROR");
-                    mainObj.put("message", "Your total turnover from "+info.custom_promo_code.replace("_", " ")+" is only "+FormatNumber(String.valueOf(checker.total))+". To qualify, it must be at least "+FormatNumber(String.valueOf(info.custom_promo_turnover))+" or higher.");
-                    mainObj.put("errorcode", "400");
-                    out.print(mainObj);
-                    return;
-                }
-               
-            }else if(info.custom_promo_rollover > 0 && amount < info.custom_promo_rollover){
+            if(info.custom_promo_rollover > 0 && amount < info.custom_promo_rollover){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message", "Credit score from "+info.custom_promo_code.replace("_", " ")+" must be "+FormatNumber(String.valueOf(info.custom_promo_rollover))+" or greater than total rollover");
                 mainObj.put("errorcode", "400");

@@ -202,24 +202,22 @@ try{
                 ExecuteQuery("UPDATE tblgamelogs_funky set winAmount="+win_amount+", betStatus='"+status+"', voucherId='"+voucherid+"', effectiveStake="+effective+",freeSpinMainBet='"+freeSpinMainBet+"', datesettled=current_timestamp" +
                                     " where operatorid='"+info.operatorid+"' and playerId='"+userid+"' and refNo='"+reference+"' "); 
 
-                if(win_amount > 0){
-                    int i = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                    if(i == 0){
-                        Thread.sleep(500); 
-                        int m = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                        if(m == 0){
+                int i = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                if(i == 0){
+                    Thread.sleep(500); 
+                    int m = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                    if(m == 0){
+                        Thread.sleep(500);
+                        int n = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                        if(n == 0){
                             Thread.sleep(500);
-                            int n = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                            if(n == 0){
+                            int p = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                            if(p == 0){
                                 Thread.sleep(500);
-                                int p = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                                if(p == 0){
+                                int q = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
+                                if(q == 0){
                                     Thread.sleep(500);
-                                    int q = UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                                    if(q == 0){
-                                        Thread.sleep(500);
-                                        UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
-                                    }
+                                    UpdateGameSummary(info.operatorid, userid, provider, gamecode, reference, win_amount);
                                 }
                             }
                         }

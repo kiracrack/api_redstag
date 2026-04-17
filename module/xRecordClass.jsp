@@ -63,6 +63,7 @@
     public String betwacherid, testaccountid, dummy_account_1, dummy_account_2;
     public boolean enable_agent_commission, enableBetWatcher, betwatcherincludedummybets, enablebetbalancer;
     public double minbet, maxbet, op_com_rate, be_com_rate, draw_rate, betwatchermaxamount, betwatcherodds, betbalanceramount;
+    public double mindeposit, maxdeposit, minwithdraw, maxwithdraw;
     public OperatorInfo(String operatorid){
         try{
             ResultSet rst = null; 
@@ -72,6 +73,11 @@
                 this.testaccountid = rst.getString("testaccountid");
                 this.dummy_account_1 = rst.getString("dummy_account_1");
                 this.dummy_account_2 = rst.getString("dummy_account_2");
+
+                this.mindeposit = rst.getDouble("mindeposit");
+                this.maxdeposit = rst.getDouble("maxdeposit");
+                this.minwithdraw = rst.getDouble("minwithdraw");
+                this.maxwithdraw = rst.getDouble("maxwithdraw");
 
                 this.enable_agent_commission = rst.getBoolean("enable_agent_commission");
                 
@@ -402,7 +408,9 @@
 
 <%!public class BankInfo{
     public String remittanceid, accountnumber, accountname;
-    public boolean isoperator;
+    public boolean isoperator, cooldown_enable;
+    public double max_daily_player, max_daily_total;
+    public int num_days_cooldown;
     public BankInfo(String bankid){
         try{
             ResultSet rst = null; 
@@ -412,6 +420,11 @@
                 this.accountnumber =  rst.getString("accountnumber");
                 this.accountname =  rst.getString("accountname");
                 this.isoperator =  rst.getBoolean("isoperator");
+                
+                this.cooldown_enable =  rst.getBoolean("cooldown_enable");
+                this.max_daily_player =  rst.getDouble("max_daily_player");
+                this.max_daily_total =  rst.getDouble("max_daily_total");
+                this.num_days_cooldown =  rst.getInt("num_days_cooldown");
             }
             rst.close();
         }catch(SQLException e){
@@ -630,7 +643,28 @@
     }
 }%>
 
+<%!public class DepositCooldownChecker{
+    public String date_cooldown_expiry;
+    public boolean reached_limit;  
+    public DepositCooldownChecker(String bankid){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("SELECT IF(IFNULL(SUM(d.amount),0) >= b.max_daily_total, TRUE, FALSE) AS reached_limit, "
+                        + " CASE WHEN IFNULL(SUM(d.amount),0) >= b.max_daily_total THEN DATE_ADD(CURDATE(), INTERVAL b.num_days_cooldown DAY) ELSE NULL END AS date_cooldown_expiry "
+                        + " FROM tblbankaccounts b LEFT JOIN tbldeposits d ON b.id = d.bankid AND d.date_deposit = CURDATE() where b.id='" + bankid + "' and d.confirmed=1 and d.cancelled=0 GROUP BY b.id");
+            while(rst.next()){
+                this.reached_limit = rst.getBoolean("reached_limit");
+                this.date_cooldown_expiry = rst.getString("date_cooldown_expiry");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-deposit-cooldown-checker",e.toString());
+        }
+    }
+}%>
+
 <%!public class DepositInfo{
+    public String bankid;
     public double amount, welcome_rate, daily_rate, midnight_amount; 
     public boolean confirmed, welcome_bonus, daily_bonus, midnight_bonus, telco;
     public DepositInfo(String refno){
@@ -638,6 +672,7 @@
             ResultSet rst = null; 
             rst =  SelectQuery("select * from tbldeposits as a where refno='"+refno+"'");
             while(rst.next()){
+                this.bankid = rst.getString("bankid");
                 this.amount = rst.getDouble("amount");
                 this.confirmed = rst.getBoolean("confirmed");
                 this.welcome_bonus = rst.getBoolean("welcome_bonus");

@@ -98,8 +98,10 @@ try{
     
     }else if(x.equals("new_deposit")){
         AccountInfo info = new AccountInfo(userid);
-        boolean showOperatorAccount = false;
+        OperatorInfo ops = new OperatorInfo(info.operatorid);
 
+        boolean showOperatorAccount = false;
+        
         if(!isBankAccountExist(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Please create bank account first");
@@ -113,14 +115,18 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
-
         }
+        
+        //update bank account as active after cooldown is expired
+        ExecuteQuery("UPDATE tblbankaccounts SET cooldown_expired = NULL WHERE accountid='"+info.operatorid+"' and isoperator and NOT deleted and actived and cooldown_expired IS NOT NULL AND cooldown_expired <= CURDATE();");
 
         mainObj.put("status", "OK");
         mainObj = LoadTelcoList(mainObj);
-        mainObj = api_operator_bank(mainObj, info.operatorid);
+        mainObj = api_operator_bank(mainObj, userid, info.operatorid);
         mainObj = api_account_info(mainObj, userid, false); 
         mainObj = api_promotion_status(mainObj, info.operatorid);
+        mainObj.put("mindeposit", ops.mindeposit);
+        mainObj.put("maxdeposit",  ops.maxdeposit);
         mainObj.put("promo_active", (info.iscashaccount && info.ispromoactive && info.creditbal > 0));
         mainObj.put("promo_name", (info.iscashaccount && info.ispromoactive && info.creditbal > 0 ? info.promo_active_name : ""));
         mainObj.put("message","Result synchronized");
@@ -175,6 +181,7 @@ try{
 
         String platform = request.getParameter("platform"); if(platform == null) platform = "android";
         AccountInfo info = new AccountInfo(userid);
+        OperatorInfo ops = new OperatorInfo(info.operatorid);
 
         if(!info.midnight_available) midnight_bonus = false;
         if(!info.isnewaccount) welcome_bonus = 0;
@@ -182,6 +189,13 @@ try{
         if(isTherePendingDeposit(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "You have already a pending deposit! Multiple deposits is not allowed");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+        
+         }else if(Double.parseDouble(amount) < ops.mindeposit || Double.parseDouble(amount) > ops.maxdeposit){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Deposit amount is invalid. please try again");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
