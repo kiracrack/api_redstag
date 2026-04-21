@@ -408,7 +408,7 @@
 
 <%!public class BankInfo{
     public String remittanceid, accountnumber, accountname;
-    public boolean isoperator, cooldown_enable;
+    public boolean isoperator;
     public double max_daily_player, max_daily_total;
     public int num_days_cooldown;
     public BankInfo(String bankid){
@@ -421,7 +421,6 @@
                 this.accountname =  rst.getString("accountname");
                 this.isoperator =  rst.getBoolean("isoperator");
                 
-                this.cooldown_enable =  rst.getBoolean("cooldown_enable");
                 this.max_daily_player =  rst.getDouble("max_daily_player");
                 this.max_daily_total =  rst.getDouble("max_daily_total");
                 this.num_days_cooldown =  rst.getInt("num_days_cooldown");
