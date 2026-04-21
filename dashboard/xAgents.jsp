@@ -136,6 +136,13 @@ try{
                 mainObj.put("message", "Transfering account to other master agent is not allowed!");
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
+                
+         }else if(!username.matches("^[a-zA-Z0-9_]+$")) {
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Invalid username format. please remove special character");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
 
         } else {
                 String agent = "";
