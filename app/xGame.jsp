@@ -50,6 +50,14 @@ try{
         }
     }
 
+    if(isApiPlayer(userid)){
+        mainObj.put("status", "ERROR");
+        mainObj.put("message", "Your account is not allowed to play casino games");
+        mainObj.put("errorcode", "400");
+        out.print(mainObj);
+        return;
+    }
+
     if(x.equals("infinity")){
         GameSettings game = new GameSettings("infinity");
         String gameid = request.getParameter("gameid");
@@ -354,6 +362,11 @@ try{
       out.print(mainObj);
       logError("app-x-game",e.getMessage());
 }
+%>
+
+<%!public boolean isApiPlayer(String accountid) {
+    return CountQry("tblsubscriber", "accountid='"+accountid+"' and api_player=1") > 0;
+  }
 %>
 
 <%!public void CreateGameSession(String gamesession, String accountid, String sessionid, String gameid, String provider, String gameurl){
