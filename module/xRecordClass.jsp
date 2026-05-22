@@ -817,8 +817,8 @@
     public TotalBetsChecker(String accountid, String date_deposit, double amount_deposit){
         try{
             ResultSet rst = null; 
-            rst =  SelectQuery("select sum(total_bet) as total from (select ifnull(sum(bet_amount),0) as total_bet FROM tblfightbets2 where accountid='"+accountid+"' and datetrn >= '"+date_deposit+"' union all "
-                        + " select ifnull(sum(totalbets),0) as total_bet from tblgamesummary where accountid='"+accountid+"' and gamedate >= '"+date_deposit+"') as x;");
+            rst =  SelectQuery("select sum(total_bet) as total from (select ifnull(sum(bet_amount),0) as total_bet FROM tblfightbets2 where accountid='"+accountid+"' " + (date_deposit.length() > 0 ? " and datetrn >= '"+date_deposit+"'" : " and datetrn >=current_timestamp" ) + " union all "
+                        + " select ifnull(sum(totalbets),0) as total_bet from tblgamesummary where accountid='"+accountid+"' " + (date_deposit.length() > 0 ? " and gamedate >= '"+date_deposit+"'" : " and gamedate >=current_timestamp" ) + ") as x;");
             while(rst.next()){
                 this.total = rst.getDouble("total");
                 if(this.total > 0){

@@ -143,17 +143,27 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
-    }else if(x.equals("online_deposit_withdraw")){
+    }else if(x.equals("online_deposit_withdraw_details")){
         String operatorid = request.getParameter("operatorid");
         boolean range = Boolean.parseBoolean(request.getParameter("range"));
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
 
         mainObj.put("status", "OK");
-        mainObj = online_deposit_withdraw(mainObj,operatorid,range,datefrom,dateto);
+        mainObj = online_deposit_withdraw_details(mainObj,operatorid,range,datefrom,dateto);
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
+    }else if(x.equals("online_deposit_withdraw_summary")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = online_deposit_withdraw_summary(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
 
     }else if(x.equals("casino_game_report")){
         String operatorid = request.getParameter("operatorid");
@@ -271,7 +281,7 @@ try{
 }
 %>
 <%!public JSONObject load_report_template(JSONObject mainObj) {
-      mainObj = DBtoJson(mainObj, "report_template", "select * from tblreporttemplate order by id asc");
+      mainObj = DBtoJson(mainObj, "report_template", "select * from tblreporttemplate order by reportname asc");
       return mainObj;
  }
  %>
@@ -598,7 +608,7 @@ try{
  }
  %>
 
-<%!public JSONObject online_deposit_withdraw(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+<%!public JSONObject online_deposit_withdraw_details(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
       mainObj = DBtoJson(mainObj, "report", "select *, accountid as 'Account ID', fullname as 'Fullname' from (select accountid, "
                                 + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
                                 + " refno as 'Transaction No', "
@@ -639,6 +649,34 @@ try{
                               + " select 7, 'Withdrawal', 'right'  union all "
                               + " select 8, 'Date', 'center'  union all "
                               + " select 9, 'Time', 'center' "
+                              + "");
+      return mainObj;
+ }
+ %>
+
+ <%!public JSONObject online_deposit_withdraw_summary(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+ 
+      mainObj = DBtoJson(mainObj, "report", "select date(datetrn) as 'Date', ifnull(sum(deposit),0) as 'Deposits', ifnull(sum(withdrawal),0) as 'Withdrawals',  ifnull(sum(deposit),0) - ifnull(sum(withdrawal),0) as 'Profit', count(*) as 'Transaction' from  "
+                                + " (select datetrn, operatorid, "
+                                + " 0 as 'deposit', "
+                                + " amount as 'withdrawal' "
+                                + " from tblwithdrawal as a where confirmed=1 and cancelled=0 "
+                                + " and (select masteragentid from tblsubscriber where accountid=a.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"')  "
+                                + " union all "
+                                + " select datetrn, operatorid, "
+                                + " amount as 'deposit', "
+                                + " 0 as 'withdrawal' "
+                                + " from tbldeposits as b where operatoraccount=1 and confirmed=1 and cancelled=0) as x "
+                                + " where operatorid='" + operatorid + "' "
+                                + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                                + " group by date(datetrn) order by date(datetrn) asc");
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Date', 'center' union all "
+                              + " select 2, 'Deposits', 'right'  union all "
+                              + " select 3, 'Withdrawals', 'right' union all "
+                              + " select 4, 'Profit', 'right'  union all "
+                              + " select 5, 'Transaction', 'center'"
                               + "");
       return mainObj;
  }
