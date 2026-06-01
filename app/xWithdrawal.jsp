@@ -40,7 +40,7 @@ try{
     if(x.equals("new_withdrawal")){
         AccountInfo info = new AccountInfo(userid);
         TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
-        if(!checker.qualified){
+        if(info.newdeposit > 0 && !checker.qualified){
             mainObj.put("status", "ERROR");
             mainObj.put("message","Your account is not eligible to withdraw. Please continue placing bets and reach rollover requirement of 1X to withdraw. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  );
             mainObj.put("errorcode", "100");
@@ -166,7 +166,7 @@ try{
         AccountInfo info = new AccountInfo(userid);
 
         TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
-        if(!checker.qualified){
+        if(info.newdeposit > 0 && !checker.qualified){
             mainObj.put("status", "ERROR");
             mainObj.put("message","Your account is not eligible to withdraw. Please continue placing bets and reach rollover requirement of 1X to withdraw. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  );
             mainObj.put("errorcode", "100");

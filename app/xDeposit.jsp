@@ -305,7 +305,7 @@ try{
         String accountid = request.getParameter("accountid");
         String reason = request.getParameter("reason");
 
-        DepositInfo dep = new DepositInfo(refno);
+        DepositInfo dep = new DepositInfo(refno, accountid);
         ExecuteQuery("UPDATE tbldeposits set cancelled=1,datecancelled=current_timestamp,cancelledreason='"+rchar(reason)+"' where refno='"+refno+"' and accountid='"+accountid+"'");
         SendRequestNotificationCount(userid);
         SendBankingNotification(refno, accountid, "deposit", "Ohhh no!", "Your deposit was cancelled by your agent", dep.amount);

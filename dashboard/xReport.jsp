@@ -165,6 +165,17 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
+    }else if(x.equals("online_deposit_withdraw_cancelled")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = online_deposit_withdraw_cancelled(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
+
     }else if(x.equals("casino_game_report")){
         String operatorid = request.getParameter("operatorid");
         boolean range = Boolean.parseBoolean(request.getParameter("range"));
@@ -677,6 +688,55 @@ try{
                               + " select 3, 'Withdrawals', 'right' union all "
                               + " select 4, 'Profit', 'right'  union all "
                               + " select 5, 'Transaction', 'center'"
+                              + "");
+      return mainObj;
+ }
+ %>
+
+ <%!public JSONObject online_deposit_withdraw_cancelled(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "report", "select *, accountid as 'Account ID', fullname as 'Fullname' from (select accountid, "
+                                + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
+                                + " refno as 'Transaction No', "
+                                + " accountno as 'Account No', "
+                                + " accountname as 'Account Name', "
+                                + " 0 as 'Deposits', "
+                                + " amount as 'Withdrawal', "
+                                + " cancelledreason as 'Cancelled Reason', "
+                                + " date_format(datetrn,'%Y-%m-%d') as 'Date', "
+                                + " date_format(datetrn,'%r') as 'Time',  "
+                                + " datetrn, "
+                                + " operatorid " 
+                                + " from tblwithdrawal as a where cancelled=1 "
+                                + " and (select masteragentid from tblsubscriber where accountid=a.accountid) in (select ownersaccountid from tbloperator where operatorid='101')  "
+                                + " union all "
+                                + " select accountid, "
+                                + " (select fullname from tblsubscriber where accountid=b.accountid) as fullname, "
+                                + " refno as 'Transaction No', "
+                                + " (select accountnumber from tblbankaccounts where id=b.bankid) as 'Account No', "
+                                + " (select accountname from tblbankaccounts where id=b.bankid) as 'Account Name', "
+                                + " amount as 'Deposits', "
+                                + " 0 as 'Withdrawal', "
+                                + " cancelledreason as 'Cancelled Reason', "
+                                + " date_format(datetrn,'%Y-%m-%d') as 'Date', "
+                                + " date_format(datetrn,'%r') as 'Time',  "
+                                + " datetrn,  "
+                                + " operatorid " 
+                                + " from tbldeposits as b where operatoraccount=1 and cancelled=1) as x "
+                                + " where operatorid='" + operatorid + "' "
+                                + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                                + " order by datetrn asc");
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Account ID', 'center' union all "
+                              + " select 2, 'Fullname', 'left'  union all "
+                              + " select 3, 'Transaction No', 'center' union all "
+                              + " select 4, 'Account No', 'center'  union all "
+                              + " select 5, 'Account Name', 'left'  union all "
+                              + " select 6, 'Deposits', 'right'  union all "
+                              + " select 7, 'Withdrawal', 'right'  union all "
+                              + " select 8, 'Cancelled Reason', 'left'  union all "
+                              + " select 9, 'Date', 'center'  union all "
+                              + " select 10, 'Time', 'center' "
                               + "");
       return mainObj;
  }

@@ -666,10 +666,10 @@
     public String bankid;
     public double amount, welcome_rate, daily_rate, midnight_amount; 
     public boolean confirmed, welcome_bonus, daily_bonus, midnight_bonus, telco;
-    public DepositInfo(String refno){
+    public DepositInfo(String refno, String accountid){
         try{
             ResultSet rst = null; 
-            rst =  SelectQuery("select * from tbldeposits as a where refno='"+refno+"'");
+            rst =  SelectQuery("select * from tbldeposits as a where refno='"+refno+"' and accountid='"+accountid+"'");
             while(rst.next()){
                 this.bankid = rst.getString("bankid");
                 this.amount = rst.getDouble("amount");

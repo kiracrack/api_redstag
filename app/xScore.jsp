@@ -91,7 +91,7 @@ try{
                 SendTransferScoreNotification(accountid, userid, account_from_name, amount);
 
             }else if(mode.equals("deposit")){
-                DepositInfo dep = new DepositInfo(refno);
+                DepositInfo dep = new DepositInfo(refno, accountid);
                 if(dep.confirmed){
                     mainObj.put("status", "ERROR");
                     mainObj.put("message", "Deposit is already confirmed");

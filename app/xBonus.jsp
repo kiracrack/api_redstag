@@ -49,7 +49,7 @@ try{
         }
         
         ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+info.winstrike_type.toLowerCase()+" bonus', bonuscode='"+ bonuscode +"', bonusdate=current_date, amount="+info.winstrike_bonus+", dateclaimed=current_timestamp");
-        ExecuteQuery("UPDATE tblsubscriber set winstrike_available=0, winstrike_enabled=1 where accountid='"+userid+"'");
+        ExecuteQuery("UPDATE tblsubscriber set winstrike_available=0, winstrike_enabled=1, newdeposit=0, newdepositdate=current_timestamp where accountid='"+userid+"'");
 
         ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", info.winstrike_bonus, info.winstrike_type.toLowerCase() + " bonus", userid);
         SendBonusNotification(userid, "You have received "+String.format("%,.2f", info.bonus_amount) + " from "+info.winstrike_type.toLowerCase()+" bonus", info.winstrike_bonus);
@@ -174,17 +174,7 @@ try{
                 out.print(mainObj);
                 return;
             }
-
-            TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
-            if(!checker.qualified){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met.");
-                mainObj.put("errorcode", "100");
-                out.print(mainObj);
-                return;
-            }
-
-
+            
             double amount = info.totaldeposit * 0.08;
             if(amount > 1688) amount = 1688;
             
@@ -247,7 +237,7 @@ try{
             
             ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='social media bonus', bonuscode='socialmedia', bonusdate=current_date, amount="+info.bonus_amount+", dateclaimed=current_timestamp");
-            ExecuteQuery("UPDATE tblsubscriber set socialmedia_available=0, socialmedia_enabled=1 where accountid='"+userid+"'");
+            ExecuteQuery("UPDATE tblsubscriber set socialmedia_available=0, socialmedia_enabled=1, newdeposit=0, newdepositdate=current_timestamp where accountid='"+userid+"'");
 
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", info.bonus_amount, "social media bonus", userid);
             SendBonusNotification(userid, "You have received "+String.format("%,.2f", info.bonus_amount) + " from social media bonus", info.bonus_amount);
@@ -293,7 +283,7 @@ try{
             
             if(prevRebate > 1688) prevRebate = 1688; ClearExistingBonus(userid);
             ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='5% weekly loss rebate', bonuscode='WRW-"+dw.prev_week_code+"', bonusdate=current_date, amount="+prevRebate+", dateclaimed=current_timestamp");
-            ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=1, rebate_enabled=0 where accountid='"+userid+"'");
+            ExecuteQuery("UPDATE tblsubscriber set weekly_loss_enabled=1, rebate_enabled=0, newdeposit=0, newdepositdate=current_timestamp where accountid='"+userid+"'");
             ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", prevRebate, "5% weekly loss rebate", userid);
             SendBonusNotification(userid, "You have received "+String.format("%,.2f", prevRebate) + " from 5% weekly loss rebate", prevRebate);
 
@@ -330,7 +320,7 @@ try{
                     return;
                 }else{
                     TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
-                    if(!checker.qualified){
+                    if(info.newdeposit > 0 && !checker.qualified){
                         mainObj.put("status", "ERROR");
                         mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met.");
                         mainObj.put("errorcode", "100");
