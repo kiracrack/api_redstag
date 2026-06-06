@@ -144,7 +144,7 @@
             String ledger = "return score (cancelled fight#"+fightnumber+"@"+ arena + (reason.length() > 0 ? " - " + reason : "") + ")";
 
             if(!isLogFightFound(uid,sessionid,arenaid,eventid,fightkey,ledger,totalbet)){
-                if(!dummy && !banker && !test) VerifyWinStreak(ws_selection, uid, fightnumber, arenaid, eventid, bet_choice, totalbet, "C");
+                if(!dummy && !banker && !test) VerifyWinStreak(ws_selection, uid, fightkey, fightnumber, arenaid, eventid, bet_choice, totalbet, "C");
                 LogFightNotification(uid,sessionid,arenaid,eventid,fightkey,ledger,totalbet);
                 if(!dummy) LogLedgerDirect(uid, sessionid, fightkey, referenceno, ledger, 0, totalbet, "CONTROLLER");
             }
@@ -207,7 +207,7 @@
             if(totalpayout > 0){
                 String ledger = (result.equals("M") ? "meron win" : (result.equals("W") ? "wala win" : "result draw")) + " ("+odd+"% fight#"+fightnumber+"@"+arena+")";
                 if(!isLogFightFound(uid,sessionid,arenaid,eventid,fightkey,ledger,totalpayout)){
-                    if(totallose==0 && !dummy && !banker && !test) VerifyWinStreak(ws_selection, uid, fightnumber, arenaid, eventid, win_choice, totalwinbet, result);
+                    if(totallose==0 && !dummy && !banker && !test) VerifyWinStreak(ws_selection, uid, fightkey, fightnumber, arenaid, eventid, win_choice, totalwinbet, result);
                     LogFightNotification(uid,sessionid,arenaid, eventid,fightkey,ledger,totalpayout);
                     if(!dummy) LogLedgerDirect(uid, sessionid, fightkey, referenceno, ledger ,0, totalpayout, "CONTROLLER");
                     execute_notify = true;
@@ -218,7 +218,7 @@
             String loss_desc = "Your bet loss on fight #"+fightnumber+"!";
 
             if(totalwin==0 && totallose==0){ 
-                if(totalbet > 0 && !dummy && !banker && !test) RecordWinStreak(ws_selection, uid, fightnumber, arenaid, eventid, bet_choice, totalbet, result);
+                if(totalbet > 0 && !dummy && !banker && !test) RecordWinStreak(ws_selection, uid, fightkey, fightnumber, arenaid, eventid, bet_choice, totalbet, result);
                 SendResultNotification(platform, "Return Bets", uid, result, event_desc, (totalcancelled > 0 ? totalcancelled : totalbet), 0, true, "Your bets is cancelled! " + (!result.equals("D") ? cancelledreason : ""));
 
             }else if(totalwin==0 && totallose > 0){
@@ -254,7 +254,7 @@
     ExecuteResult("INSERT into tblfightlogs set accountid='"+accountid+"', sessionid='"+sessionid+"', arenaid='"+arenaid+"', eventid='"+eventid+"', fightkey='"+fightkey+"', description='"+description+"', amount='"+amount+"'");
 }%>
 
-<%!public void VerifyWinStreak(String category, String accountid, String fightno, String arenaid, String eventid, String bet_choice, double amount, String result){
+<%!public void VerifyWinStreak(String category, String accountid, String fightkey, String fightno, String arenaid, String eventid, String bet_choice, double amount, String result){
     if(!category.isEmpty()){
         if(isPromotionEnabled("promo_win_strike")){
             AccountType account = new AccountType(accountid);
@@ -268,21 +268,21 @@
                             if(ws.cockfight_eventid.equals(eventid)){
                                 int fightnumber = Integer.parseInt(fightno);
                                 if((fightnumber - 1) == ws.cockfight_fightno){
-                                    RecordWinStreak(category, accountid, fightno, arenaid, eventid, bet_choice, amount, result);
+                                    RecordWinStreak(category, accountid, fightkey, fightno, arenaid, eventid, bet_choice, amount, result);
                                 }else{
                                     if(winstrike < 7){
                                         ResetGameStreak(category, accountid, eventid);
-                                        RecordWinStreak(category, accountid, fightno, arenaid, eventid, bet_choice, amount, result);
+                                        RecordWinStreak(category, accountid, fightkey, fightno, arenaid, eventid, bet_choice, amount, result);
                                     }
                                 }
                             }else{
                                 if(winstrike < 7){
                                     ResetGameStreak(category, accountid, eventid);
-                                    RecordWinStreak(category, accountid, fightno, arenaid, eventid, bet_choice, amount, result);
+                                    RecordWinStreak(category, accountid, fightkey, fightno, arenaid, eventid, bet_choice, amount, result);
                                 }
                             }
                         }else{
-                            RecordWinStreak(category, accountid, fightno, arenaid, eventid, bet_choice, amount, result);
+                            RecordWinStreak(category, accountid, fightkey, fightno, arenaid, eventid, bet_choice, amount, result);
                         }
                     }
                 }
@@ -296,32 +296,34 @@
     if(winstrike < 7) ExecuteResult("DELETE FROM tblfightwinstrike where category='"+category+"' and accountid='"+accountid+"' and eventid='"+eventid+"'");
 }%>
 
-<%!public void RecordWinStreak(String category, String accountid, String fightno, String arenaid, String eventid, String bet_choice, double amount, String result){
+<%!public void RecordWinStreak(String category, String accountid, String fightkey, String fightno,String arenaid, String eventid, String bet_choice, double amount, String result){
     if(!category.isEmpty()){
-        ExecuteResult("INSERT INTO tblfightwinstrike set category='"+category+"', accountid='"+accountid+"', arenaid='"+arenaid+"', eventid='"+eventid+"', fightnumber='"+fightno+"', bet_choice='"+bet_choice+"', bet_amount='"+amount+"',result='"+result+"', datetrn=current_timestamp");
-        ExecuteResult("UPDATE tblsubscriber set cockfight_fightno='"+fightno+"', cockfight_eventid='"+eventid+"' where accountid='"+accountid+"'");
+        if(!isWinStrikeFightKeyExist(category, accountid, eventid, fightkey)){
+            ExecuteResult("INSERT INTO tblfightwinstrike set category='"+category+"', accountid='"+accountid+"', arenaid='"+arenaid+"', eventid='"+eventid+"', fightkey='"+fightkey+"', fightnumber='"+fightno+"', bet_choice='"+bet_choice+"', bet_amount='"+amount+"',result='"+result+"', datetrn=current_timestamp");
+            ExecuteResult("UPDATE tblsubscriber set cockfight_fightno='"+fightno+"', cockfight_eventid='"+eventid+"' where accountid='"+accountid+"'");
 
-        int winstrike = CountWinstrike(category, accountid, eventid);
-        if(winstrike >= 7){
-            WinStrikeBonus bonus = new WinStrikeBonus(category);
-            WinstrikeCounter counter = new WinstrikeCounter(eventid);
-            if(category.equals("silver")){
-                if(counter.silver < 3){
-                    ExecuteResult("UPDATE tblevent set winstrike_silver=winstrike_silver+1 where eventid='"+eventid+"'");
-                    ExecuteResult("UPDATE tblsubscriber set winstrike_available=1, winstrike_eventid='"+eventid+"', winstrike_bonus='"+bonus.bonus_amount+"', winstrike_category='"+category+"' where accountid='"+accountid+"'");
+            int winstrike = CountWinstrike(category, accountid, eventid);
+            if(winstrike >= 7){
+                WinStrikeBonus bonus = new WinStrikeBonus(category);
+                WinstrikeCounter counter = new WinstrikeCounter(eventid);
+                if(category.equals("silver")){
+                    if(counter.silver < 3){
+                        ExecuteResult("UPDATE tblevent set winstrike_silver=winstrike_silver+1 where eventid='"+eventid+"'");
+                        ExecuteResult("UPDATE tblsubscriber set winstrike_available=1, winstrike_eventid='"+eventid+"', winstrike_bonus='"+bonus.bonus_amount+"', winstrike_category='"+category+"' where accountid='"+accountid+"'");
+                    }
+
+                }else if(category.equals("gold")){
+                    if(counter.gold < 3){
+                        ExecuteResult("UPDATE tblevent set winstrike_gold=winstrike_gold+1 where eventid='"+eventid+"'");
+                        ExecuteResult("UPDATE tblsubscriber set winstrike_available=1, winstrike_eventid='"+eventid+"', winstrike_bonus='"+bonus.bonus_amount+"', winstrike_category='"+category+"' where accountid='"+accountid+"'");
+                    } 
+
+                }else if(category.equals("platinum")){
+                    if(counter.platinum < 3){
+                        ExecuteResult("UPDATE tblevent set winstrike_platinum=winstrike_platinum+1 where eventid='"+eventid+"'");
+                        ExecuteResult("UPDATE tblsubscriber set winstrike_available=1, winstrike_eventid='"+eventid+"', winstrike_bonus='"+bonus.bonus_amount+"', winstrike_category='"+category+"' where accountid='"+accountid+"'");
+                    } 
                 }
-
-            }else if(category.equals("gold")){
-                if(counter.gold < 3){
-                    ExecuteResult("UPDATE tblevent set winstrike_gold=winstrike_gold+1 where eventid='"+eventid+"'");
-                    ExecuteResult("UPDATE tblsubscriber set winstrike_available=1, winstrike_eventid='"+eventid+"', winstrike_bonus='"+bonus.bonus_amount+"', winstrike_category='"+category+"' where accountid='"+accountid+"'");
-                } 
-
-            }else if(category.equals("platinum")){
-                if(counter.platinum < 3){
-                    ExecuteResult("UPDATE tblevent set winstrike_platinum=winstrike_platinum+1 where eventid='"+eventid+"'");
-                    ExecuteResult("UPDATE tblsubscriber set winstrike_available=1, winstrike_eventid='"+eventid+"', winstrike_bonus='"+bonus.bonus_amount+"', winstrike_category='"+category+"' where accountid='"+accountid+"'");
-                } 
             }
         }
     }

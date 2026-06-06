@@ -115,6 +115,13 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
+
+        }else if(isActiveBetExists(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You currently have a cockfight bet running. Deposit will be available after the game ends.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
         }
         
         //update bank account as active after cooldown is expired
@@ -189,6 +196,13 @@ try{
         if(isTherePendingDeposit(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "You have already a pending deposit! Multiple deposits is not allowed");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+        
+        }else if(isActiveBetExists(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You currently have a cockfight bet running. Deposit can be made after the game ends.");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;

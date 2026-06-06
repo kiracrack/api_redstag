@@ -54,6 +54,13 @@ try{
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
+
+        }else if(isActiveBetExists(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You currently have a cockfight bet running. Withdrawals can be made after the game ends.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
         }
 
         mainObj.put("status", "OK");
@@ -139,8 +146,24 @@ try{
         double amount = Double.parseDouble(CC(request.getParameter("amount")));
         String appreference = request.getParameter("appreference");
         String platform = request.getParameter("platform"); if(platform == null) platform = "android";
-    
-        if(CountQry("tblsubscriber", "accountid='"+userid+"' and creditbal < "+amount+"") > 0){
+
+        String creditbal = getLatestCreditBalance(userid);
+
+        if(Double.parseDouble(creditbal) < amount){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Amount must be not more than account balance");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }else if(CountQry("tblsubscriber", "accountid='"+userid+"' and creditbal < "+amount+"") > 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Amount must be not more than account balance");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+
+        }else if(CountQry("tblsubscriber", "accountid='"+userid+"' and ledgerbal < "+amount+"") > 0){
             mainObj.put("status", "ERROR");
             mainObj.put("message","Amount must be not more than account balance");
             mainObj.put("errorcode", "100");
@@ -157,6 +180,13 @@ try{
         }else if(isTherePendingWithdrawal(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "You have already a pending withdrawal! We only allow one withdrawal at a time");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+            
+        }else if(isActiveBetExists(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You currently have a cockfight bet running. Withdrawals can be made after the game ends.");
             mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;

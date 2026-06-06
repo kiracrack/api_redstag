@@ -157,13 +157,13 @@ try{
         
        
         JSONArray objarray = new JSONArray();
-        objarray.add(CreateObj("Total Sabong Profit", String.valueOf((rpt.sabong == 0 ? "0.00" : sabong))));
-        if(include_casino) objarray.add(CreateObj("Total Casino Profit", String.valueOf((rpt.casino == 0 ? "0.00" : casino))));
+        objarray.add(CreateObj("Total Sabong Profit", String.valueOf((rpt.sabong == 0 ? "0.00" : sabong)), false, ""));
+        if(include_casino) objarray.add(CreateObj("Total Casino Profit", String.valueOf((rpt.casino == 0 ? "0.00" : casino)), false, ""));
         
         double total_profit = (-rpt.sabong) + (-rpt.casino);
         String profit = FormatCurrency(String.valueOf(total_profit));
-        objarray.add(CreateObj("Total Profit", String.valueOf((total_profit == 0 ? "0.00" : profit))));
-        objarray.add(CreateObj(" ", ""));
+        objarray.add(CreateObj("Total Profit", String.valueOf((total_profit == 0 ? "0.00" : profit)), true, "#daf2d0"));
+        objarray.add(CreateObj(" ", "", false, ""));
         
         String regular_bonus = FormatCurrency(String.valueOf(-rpt.regular_bonus));
         String bonus_withdraw = FormatCurrency(String.valueOf(-rpt.bonus_withdraw));
@@ -171,19 +171,19 @@ try{
         String forfeited_bonus = FormatCurrency(String.valueOf(rpt.forfeited_bonus));
 
 
-        objarray.add(CreateObj("Regular Bonus Claimed", String.valueOf((rpt.regular_bonus == 0 ? "0.00" : regular_bonus))));
-        objarray.add(CreateObj("Custom Bonus Withdraw", String.valueOf((rpt.bonus_withdraw == 0 ? "0.00" : bonus_withdraw))));
-        objarray.add(CreateObj("Returned Bonus", (rpt.bonus_return == 0 ? "0.00" : bonus_return)));
-        objarray.add(CreateObj("Forfeited Bonus", (rpt.forfeited_bonus == 0 ? "0.00" : forfeited_bonus)));
+        objarray.add(CreateObj("Regular Bonus Claimed", String.valueOf((rpt.regular_bonus == 0 ? "0.00" : regular_bonus)), false, ""));
+        objarray.add(CreateObj("Custom Bonus Withdraw", String.valueOf((rpt.bonus_withdraw == 0 ? "0.00" : bonus_withdraw)), false, ""));
+        objarray.add(CreateObj("Returned Bonus", (rpt.bonus_return == 0 ? "0.00" : bonus_return), false, ""));
+        objarray.add(CreateObj("Forfeited Bonus", (rpt.forfeited_bonus == 0 ? "0.00" : forfeited_bonus), false, ""));
         
         double total_bonus = (-rpt.regular_bonus) + (-rpt.bonus_withdraw) + rpt.bonus_return +  rpt.forfeited_bonus;
         String bonus = FormatCurrency(String.valueOf(total_bonus));
-        objarray.add(CreateObj("Total Net Bonus", (total_bonus == 0 ? "0.00" : bonus)));
-        objarray.add(CreateObj(" ", ""));
+        objarray.add(CreateObj("Total Net Bonus", (total_bonus == 0 ? "0.00" : bonus), true, "#daf2d0"));
+        objarray.add(CreateObj(" ", "", false, ""));
 
         double total_net = Val(total_profit) - (-Val(total_bonus));
         String net = FormatCurrency(String.valueOf(total_net));
-        objarray.add(CreateObj("Total Net Profit", (total_net == 0 ? "0.00" : net)));
+        objarray.add(CreateObj("Total Net Profit", (total_net == 0 ? "0.00" : net), true, "#daf2d0"));
 
 
         mainObj.put("status", "OK");
@@ -229,13 +229,5 @@ try{
 
 <%!public void DisableMasterAgent(String accountid) {
     ExecuteQuery("DELETE from tblwinlossfilter where accountid='" + accountid + "'");
-}
-%>
-
- <%!public JSONObject CreateObj(String sabong, String total) {
-    JSONObject obj = new JSONObject();
-    obj.put("particular", sabong);
-    obj.put("val", total);
-    return obj;
 }
 %>

@@ -46,7 +46,22 @@ try{
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
+
+        }else if(isActiveBetExists(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+
+        }else if(info.ispromoactive){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", info.promo_active_name + " is active. Finish or clear it first to claim this bonus.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
         }
+        
         
         ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+info.winstrike_type.toLowerCase()+" bonus', bonuscode='"+ bonuscode +"', bonusdate=current_date, amount="+info.winstrike_bonus+", dateclaimed=current_timestamp");
         ExecuteQuery("UPDATE tblsubscriber set winstrike_available=0, winstrike_enabled=1, newdeposit=0, newdepositdate=current_timestamp where accountid='"+userid+"'");
@@ -82,6 +97,13 @@ try{
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
+        
+        }else if(isActiveBetExists(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
 
         }else if((info.ispromoactive ) && info.creditbal > 0){
             mainObj.put("status", "ERROR");
@@ -110,6 +132,14 @@ try{
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
                 return;
+            
+            }else if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+
             }
 
             ClearExistingBonus(userid);
@@ -125,6 +155,14 @@ try{
         }else if(x.equals("claim_referral_commission")){
             String appreference = request.getParameter("appreference");
             
+            if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+            }
+
             DateWeekly dw = new DateWeekly();
             DownlineWinlossCockfight wls_prev = new DownlineWinlossCockfight(userid, dw.prev_week_from, dw.prev_week_to);
             DownlineWinlossCasino wlc_prev = new DownlineWinlossCasino(userid, dw.prev_week_from, dw.prev_week_to);
@@ -167,6 +205,13 @@ try{
                 out.print(mainObj);
                 return;
 
+            }else if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+
             }else if(isBonusExistsByDate(userid, "rebate", info.bonus_date)){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Your rebate bonus is already claimed!");
@@ -202,6 +247,13 @@ try{
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
                 return;
+            
+            }else if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
 
             }else if(isBonusExistsByDate(userid, "turnover", turnover.bonusdate)){
                 mainObj.put("status", "ERROR");
@@ -233,6 +285,13 @@ try{
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
                 return;
+
+            }else if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
             }
             
             ClearExistingBonus(userid);
@@ -262,6 +321,13 @@ try{
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Weekly loss rebate not available! Please Refresh your account");
                 mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+
+            }else if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
                 out.print(mainObj);
                 return;
                 
@@ -298,6 +364,14 @@ try{
             String appreference = request.getParameter("appreference");
             PromotionInfo promo = new PromotionInfo(promocode);
             
+            if(isActiveBetExists(userid)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
+                mainObj.put("errorcode", "400");
+                out.print(mainObj);
+                return;
+            }
+
             double turnover = 0;  double rollover = 0;
             if(promo.fix_amount) turnover = promo.amount * promo.turnover;
             else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;

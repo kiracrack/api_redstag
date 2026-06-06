@@ -52,6 +52,13 @@ try{
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
+        
+        }else if(isActiveBetExists(accountid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Player currently have a cockfight bet running. Score transfer will be available after the game ends.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
             
         }else if(CountQry("tblsubscriber", "accountid='"+userid+"' and creditbal < "+amount+"") > 0){
             mainObj.put("status", "ERROR");
@@ -83,11 +90,11 @@ try{
                     mainObj = LoadScoreRequest(mainObj, userid, true, "", GlobalRecordsLimit);
                     mainObj = getTotalRequestNotification(mainObj, userid);
                 }
-                
+
+                if(info.isonlineagent) ClearExistingBonus(accountid);
                 mainObj.put("customer_id", accountid);
                 mainObj.put("customer_balance", getLatestCreditBalance(accountid));
                 mainObj.put("message", "Credit score sent! <br/>Account No. "+accountid+"<br/>Account Name "+account_to_name+"<br/>Amount "+String.format("%,.2f", amount)+"");
-
                 SendTransferScoreNotification(accountid, userid, account_from_name, amount);
 
             }else if(mode.equals("deposit")){
@@ -206,6 +213,13 @@ try{
             mainObj.put("status", "ERROR");
             mainObj.put("message","Invalid account number");
             mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+        
+        }else if(isActiveBetExists(accountid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Player currently have a cockfight bet running. Remove score will be available after the game ends.");
+            mainObj.put("errorcode", "400");
             out.print(mainObj);
             return;
             

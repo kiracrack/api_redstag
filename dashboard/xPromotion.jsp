@@ -189,6 +189,14 @@ try{
         String id = request.getParameter("id");
         BonusInfo bonus = new BonusInfo(id);
 
+        if(isActiveBetExists(bonus.accountid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Player currently have a cockfight bet running. Bonus approval will be available after the game ends.");
+            mainObj.put("errorcode", "400");
+            out.print(mainObj);
+            return;
+        }
+
         PromotionInfo promo = new PromotionInfo(bonus.bonuscode);
         AccountInfo info = new AccountInfo(bonus.accountid);
 

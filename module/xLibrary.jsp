@@ -67,6 +67,16 @@
   }
  %>
 
+<%!public JSONObject CreateObj(String description, String amount, boolean bold, String color) {
+    JSONObject obj = new JSONObject();
+    obj.put("description", description);
+    obj.put("value", amount);
+    obj.put("bold", bold); 
+    obj.put("bgcolor", color);
+    return obj;
+}
+%>
+
 <%!public String AttachedPhoto(ServletContext application, String folder, String imageString, String filename) {
      String PhotoUrl = "";
     if(imageString.length() > 0) {

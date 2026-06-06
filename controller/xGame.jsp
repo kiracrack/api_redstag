@@ -174,7 +174,7 @@ try{
             PusherPost(eventid, obj_operator);
         }
 
-        RefundErrorBets(arenaid,fightkey);
+        //RefundErrorBets(arenaid,fightkey);
 
     }else if(x.equals("post_win")){ 
         String eventid = request.getParameter("eventid");

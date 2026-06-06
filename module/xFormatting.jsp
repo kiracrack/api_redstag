@@ -44,7 +44,7 @@
 
 <%!public String FormatCurrency(String number) {
     double amount = Double.parseDouble(number);
-    DecimalFormat formatter = new DecimalFormat("#,###.00");
+    DecimalFormat formatter = new DecimalFormat("#,##0.00");
     return formatter.format(amount);
   }
 %>

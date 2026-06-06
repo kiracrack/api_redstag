@@ -245,6 +245,12 @@
  }
  %>
 
+<%!public boolean isActiveBetExists(String userid) {
+    return CountQry("tblfightbets", "accountid='"+userid+"'") > 0;
+  }
+%>
+
+
 <%!public boolean isPromotionEnabled(String promocode) {
     return CountQry("tblpromotion", "promocode='" + promocode + "' and disabled=0") > 0;
   }
@@ -397,6 +403,11 @@
 
 <%!public int CountWinstrike(String category, String accountid, String eventid) {
     return CountQry("tblfightwinstrike", "category='"+category+"' and accountid='" + accountid + "' and eventid='"+eventid+"' and (result<>'C' and result<>'D')");
+  }
+ %>
+
+<%!public boolean isWinStrikeFightKeyExist(String category, String accountid, String eventid, String fightkey) {
+    return CountQry("tblfightwinstrike", "category='"+category+"' and accountid='" + accountid + "' and eventid='"+eventid+"' and fightkey='"+fightkey+"'") > 0;
   }
  %>
 
