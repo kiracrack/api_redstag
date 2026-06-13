@@ -151,41 +151,61 @@ try{
         String datefrom = request.getParameter("datefrom");
         String dateto = request.getParameter("dateto");
 
-        GeneralReport rpt = new GeneralReport(operatorid, include_casino, datefrom, dateto);
+        GeneralSummaryOnline rpt = new GeneralSummaryOnline(operatorid, include_casino, datefrom, dateto);
         String sabong = FormatCurrency(String.valueOf(-rpt.sabong));
         String casino = FormatCurrency(String.valueOf(-rpt.casino));
         
        
         JSONArray objarray = new JSONArray();
-        objarray.add(CreateObj("Total Sabong Profit", String.valueOf((rpt.sabong == 0 ? "0.00" : sabong)), false, ""));
-        if(include_casino) objarray.add(CreateObj("Total Casino Profit", String.valueOf((rpt.casino == 0 ? "0.00" : casino)), false, ""));
+        objarray.add(CreateObj("Total Sabong", String.valueOf((rpt.sabong == 0 ? "0.00" : sabong)), false, ""));
+        if(include_casino) objarray.add(CreateObj("Total Casino", String.valueOf((rpt.casino == 0 ? "0.00" : casino)), false, ""));
         
         double total_profit = (-rpt.sabong) + (-rpt.casino);
         String profit = FormatCurrency(String.valueOf(total_profit));
-        objarray.add(CreateObj("Total Profit", String.valueOf((total_profit == 0 ? "0.00" : profit)), true, "#daf2d0"));
+        objarray.add(CreateObj("Total Winloss", String.valueOf((total_profit == 0 ? "0.00" : profit)), true, "#daf2d0"));
         objarray.add(CreateObj(" ", "", false, ""));
         
-        String regular_bonus = FormatCurrency(String.valueOf(-rpt.regular_bonus));
+        String deposit = FormatCurrency(String.valueOf(rpt.deposit));
+        String withdraw = FormatCurrency(String.valueOf(rpt.withdraw));
+
+        String app_transfer = FormatCurrency(String.valueOf(rpt.app_transfer));
+        String app_remove = FormatCurrency(String.valueOf(rpt.app_remove));
+
+        String admin_transfer = FormatCurrency(String.valueOf(rpt.admin_transfer));
+        String admin_remove = FormatCurrency(String.valueOf(rpt.admin_remove));
+
+        String regular_bonus = FormatCurrency(String.valueOf(rpt.regular_bonus));
         String bonus_withdraw = FormatCurrency(String.valueOf(-rpt.bonus_withdraw));
         String bonus_return = FormatCurrency(String.valueOf(rpt.bonus_return));
         String forfeited_bonus = FormatCurrency(String.valueOf(rpt.forfeited_bonus));
 
-
+        objarray.add(CreateObj("Total Deposit", String.valueOf((rpt.deposit == 0 ? "0.00" : deposit)), false, ""));
+        objarray.add(CreateObj("Manual Score Transfer (onlineagent)", String.valueOf((rpt.app_transfer == 0 ? "0.00" : app_transfer)), false, ""));
+        objarray.add(CreateObj("Manual Score Transfer (dashboard)", String.valueOf((rpt.admin_transfer == 0 ? "0.00" : admin_transfer)), false, ""));
         objarray.add(CreateObj("Regular Bonus Claimed", String.valueOf((rpt.regular_bonus == 0 ? "0.00" : regular_bonus)), false, ""));
-        objarray.add(CreateObj("Custom Bonus Withdraw", String.valueOf((rpt.bonus_withdraw == 0 ? "0.00" : bonus_withdraw)), false, ""));
-        objarray.add(CreateObj("Returned Bonus", (rpt.bonus_return == 0 ? "0.00" : bonus_return), false, ""));
-        objarray.add(CreateObj("Forfeited Bonus", (rpt.forfeited_bonus == 0 ? "0.00" : forfeited_bonus), false, ""));
         
-        double total_bonus = (-rpt.regular_bonus) + (-rpt.bonus_withdraw) + rpt.bonus_return +  rpt.forfeited_bonus;
-        String bonus = FormatCurrency(String.valueOf(total_bonus));
-        objarray.add(CreateObj("Total Net Bonus", (total_bonus == 0 ? "0.00" : bonus), true, "#daf2d0"));
+        double total_in = rpt.deposit + rpt.app_transfer + rpt.admin_transfer + rpt.regular_bonus;
+        objarray.add(CreateObj("TOTAL CREDIT-IN", String.valueOf((total_in == 0 ? "0.00" : FormatCurrency(String.valueOf(total_in)))), true, "#daf2d0"));
         objarray.add(CreateObj(" ", "", false, ""));
 
-        double total_net = Val(total_profit) - (-Val(total_bonus));
-        String net = FormatCurrency(String.valueOf(total_net));
-        objarray.add(CreateObj("Total Net Profit", (total_net == 0 ? "0.00" : net), true, "#daf2d0"));
+        objarray.add(CreateObj("Total Withdraw", String.valueOf((rpt.withdraw == 0 ? "0.00" : withdraw)), false, ""));
+        objarray.add(CreateObj("Manual Score Remove (onlineagent)", String.valueOf((rpt.app_remove == 0 ? "0.00" : app_remove)), false, ""));
+        objarray.add(CreateObj("Manual Score Remove (dashboard)", String.valueOf((rpt.admin_remove == 0 ? "0.00" : admin_remove)), false, ""));
+        objarray.add(CreateObj("OFFSET (Custom Bonus Withdraw)", String.valueOf((rpt.bonus_withdraw == 0 ? "0.00" : bonus_withdraw)), false, ""));
 
+        double total_out = rpt.withdraw + rpt.app_remove + rpt.admin_remove + (-rpt.bonus_withdraw);
+        objarray.add(CreateObj("TOTAL CREDIT-OUT", String.valueOf((total_out == 0 ? "0.00" :  FormatCurrency(String.valueOf(total_out)))), true, "#daf2d0"));
+        objarray.add(CreateObj(" ", "", false, ""));
 
+        double total_in_out = total_in - total_out;
+        objarray.add(CreateObj("TOTAL CREDIT-IN Less CREDIT-OUT", String.valueOf((total_in_out == 0 ? "0.00" :  FormatCurrency(String.valueOf(total_in_out)))), true, "#daf2d0"));
+        double winloss_variance = total_profit - total_in_out;
+        objarray.add(CreateObj("WINLOSS VARIANCE", String.valueOf((winloss_variance == 0 ? "0.00" :  FormatCurrency(String.valueOf(winloss_variance)))), true, "#daf2d0"));
+
+        /*
+        objarray.add(CreateObj("Returned Bonus", (rpt.bonus_return == 0 ? "0.00" : bonus_return), false, ""));
+        objarray.add(CreateObj("Forfeited Bonus", (rpt.forfeited_bonus == 0 ? "0.00" : forfeited_bonus), false, ""));*/
+        
         mainObj.put("status", "OK");
         mainObj.put("general_report", objarray);        
         mainObj.put("message", "Successfull Synchronized");

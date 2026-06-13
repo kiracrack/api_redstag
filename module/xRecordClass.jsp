@@ -1148,12 +1148,118 @@
 }%>
 
 
+<%!public class GeneralSummaryOnline{
+    public double sabong, casino, deposit, withdraw, app_transfer, app_remove, admin_transfer, admin_remove, forfeited_bonus, return_bonus, regular_bonus, bonus_return, bonus_withdraw;
+    public GeneralSummaryOnline(String operatorid, boolean include_casino, String datefrom, String dateto){
+        try{
+            ResultSet rst_sabong = null; 
+            rst_sabong =  SelectQuery("select sum(ifnull(if(promo, 0, win_amount),0)) - sum(ifnull(if(promo, 0, lose_amount),0)) as winloss from tblfightbets2 as a where masteragentid='101-00019' and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_sabong.next()){
+                this.sabong = rst_sabong.getDouble("winloss") ;
+            }
+            rst_sabong.close();
+
+            if(include_casino){
+                ResultSet rst_casino = null; 
+                rst_casino =  SelectQuery("select ifnull(sum(if(promo, 0, winloss)),0) as 'winloss' from tblgamesummary as a where masteragentid='101-00019' and date_format(gamedate,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                while(rst_casino.next()){
+                    this.casino = rst_casino.getDouble("winloss") ;
+                }
+                rst_casino.close();
+            }else{
+                this.casino = 0;
+            }
+
+
+            ResultSet rst_deposit = null; 
+            rst_deposit =  SelectQuery("select sum(amount) as total from tbldeposits as a where confirmed=1 and cancelled=0 " 
+                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_deposit.next()){
+                this.deposit = rst_deposit.getDouble("total") ;
+            }
+            rst_deposit.close();
+
+            ResultSet rst_withdraw = null; 
+            rst_withdraw =  SelectQuery("select sum(amount) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
+                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_withdraw.next()){
+                this.withdraw = rst_withdraw.getDouble("total") ;
+            }
+            rst_withdraw.close();
+
+            ResultSet rst_bonus_withdraw = null; 
+            rst_bonus_withdraw =  SelectQuery("select sum(amount) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
+                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and promocode in (select promocode from tblpromotion where build_in=0) and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_bonus_withdraw.next()){
+                this.bonus_withdraw = rst_bonus_withdraw.getDouble("total") ;
+            }
+            rst_bonus_withdraw.close();
+           
+            ResultSet rst_app_transfer = null; 
+            rst_app_transfer =  SelectQuery("select sum(amount) as total from tblcredittransfer as a where account_from='101-00019' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_app_transfer.next()){
+                this.app_transfer = (rst_app_transfer.getDouble("total") > this.deposit ? rst_app_transfer.getDouble("total") - this.deposit : 0);
+            }
+            rst_app_transfer.close();
+
+            ResultSet rst_app_remove = null; 
+            rst_app_remove =  SelectQuery("select sum(amount) as total from tblcredittransfer as a where account_to='101-00019' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_app_remove.next()){
+                this.app_remove = rst_app_remove.getDouble("total");
+            }
+            rst_app_remove.close();
+
+
+            ResultSet rst_admin_transfer = null; 
+            rst_admin_transfer =  SelectQuery("select sum(amount) as total from tblcreditloadlogs as a where (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and accountid<>'101-00019' and dashboard=1 and trntype='ADD' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_admin_transfer.next()){
+                this.admin_transfer = rst_admin_transfer.getDouble("total");
+            }
+            rst_admin_transfer.close();
+
+            ResultSet rst_admin_remove = null; 
+            rst_admin_remove =  SelectQuery("select sum(amount) as total from tblcreditloadlogs as a where (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and dashboard=1 and trntype='DEDUCT' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_admin_remove.next()){
+                this.admin_remove = rst_admin_remove.getDouble("total");
+            }
+            rst_admin_remove.close();
+
+            ResultSet rst_forfeited = null; 
+            rst_forfeited =  SelectQuery("select sum(amount) as total from tblbonusreturn as a where bonus_code not in (select promocode from tblpromotion where build_in=0) and operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_forfeited.next()){
+                this.forfeited_bonus = rst_forfeited.getDouble("total") ;
+            }
+            rst_forfeited.close();
+
+            ResultSet rst_regular = null; 
+            rst_regular =  SelectQuery("select sum(amount) as total from tblbonus as a where operatorid='"+operatorid+"' and bonuscode not in (select promocode from tblpromotion where build_in=0) and date_format(dateclaimed,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_regular.next()){
+                this.regular_bonus = rst_regular.getDouble("total") ;
+            }
+            rst_regular.close();
+
+            ResultSet rst_return = null; 
+            rst_return =  SelectQuery("select sum(amount-cashout) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
+                              + " and (promocode in (select promocode from tblpromotion where build_in=1) or promocode='telco_deposit') "
+                              + " and operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+            while(rst_return.next()){
+                this.bonus_return = rst_return.getDouble("total") ;
+            }
+            rst_return.close();
+
+         
+        }catch(SQLException e){
+            logError("class-general-report",e.toString());
+        }
+    }
+}%>
+
 <%!public class GeneralPlayerSummary{
     public double sabong, casino, beg_balance, end_balance, deposit, withdraw, bonus_withdraw, app_transfer, app_remove, admin_transfer, admin_remove, error_bets, regular_bonus, forfeited_bonus;
     public GeneralPlayerSummary(String accountid, String datefrom, String dateto){
         try{
             ResultSet rst_sabong = null; 
-            rst_sabong =  SelectQuery("select sum(ifnull(if(promo, 0, win_amount),0)) - sum(ifnull(if(promo, 0, lose_amount),0)) as winloss from "
+            rst_sabong =  SelectQuery("select ifnull(sum(ifnull(if(promo, 0, win_amount),0)) - sum(ifnull(if(promo, 0, lose_amount),0)),0) as winloss from "
                                     + " tblfightbets2 as a where accountid='"+accountid+"' and dummy=0 and banker=0 and test=0 and cancelled=0 and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_sabong.next()){
                 this.sabong = rst_sabong.getDouble("winloss") ;

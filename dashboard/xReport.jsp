@@ -274,6 +274,17 @@ try{
         mainObj = forfeited_bonus_credit(mainObj,operatorid,range,datefrom,dateto);
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
+    
+    }else if(x.equals("forfeited_custom_bonus")){
+        String operatorid = request.getParameter("operatorid");
+        boolean range = Boolean.parseBoolean(request.getParameter("range"));
+        String datefrom = request.getParameter("datefrom");
+        String dateto = request.getParameter("dateto");
+
+        mainObj.put("status", "OK");
+        mainObj = forfeited_custom_bonus(mainObj,operatorid,range,datefrom,dateto);
+        mainObj.put("message", "Successfull Synchronized");
+        out.print(mainObj);
 
         
 
@@ -645,7 +656,7 @@ try{
                                 + " date_format(datetrn,'%r') as 'Time',  "
                                 + " datetrn,  "
                                 + " operatorid " 
-                                + " from tbldeposits as b where operatoraccount=1 and confirmed=1 and cancelled=0) as x "
+                                + " from tbldeposits as b where (select masteragentid from tblsubscriber where accountid=b.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"') and confirmed=1 and cancelled=0) as x "
                                 + " where operatorid='" + operatorid + "' "
                                 + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
                                 + " order by datetrn asc");
@@ -677,7 +688,7 @@ try{
                                 + " select datetrn, operatorid, "
                                 + " amount as 'deposit', "
                                 + " 0 as 'withdrawal' "
-                                + " from tbldeposits as b where operatoraccount=1 and confirmed=1 and cancelled=0) as x "
+                                + " from tbldeposits as b where (select masteragentid from tblsubscriber where accountid=b.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"') and confirmed=1 and cancelled=0) as x "
                                 + " where operatorid='" + operatorid + "' "
                                 + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
                                 + " group by date(datetrn) order by date(datetrn) asc");
@@ -721,7 +732,7 @@ try{
                                 + " date_format(datetrn,'%r') as 'Time',  "
                                 + " datetrn,  "
                                 + " operatorid " 
-                                + " from tbldeposits as b where operatoraccount=1 and cancelled=1) as x "
+                                + " from tbldeposits as b where (select masteragentid from tblsubscriber where accountid=b.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"') and cancelled=1) as x "
                                 + " where operatorid='" + operatorid + "' "
                                 + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
                                 + " order by datetrn asc");
@@ -969,6 +980,33 @@ try{
                               + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
                               + " date_format(datetrn,'%r') as 'Time' "
                               + " from tblbonusreturn as a where bonus_code not in (select promocode from tblpromotion where build_in=0) and operatorid='"+operatorid+"' "
+                              + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                              + " order by id asc");
+
+      mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
+                              + " select 1, 'Account ID', 'center' union all "
+                              + " select 2, 'Fullname', 'left'  union all "
+                              + " select 3, 'Username', 'center'  union all "
+                              + " select 4, 'Bonus Type', 'center' union all "
+                              + " select 5, 'Amount', 'right'  union all "
+                              + " select 6, 'Date', 'center'  union all "
+                              + " select 7, 'Time', 'center' "
+                              + "");
+      return mainObj;
+ }
+ %>
+
+  <%!public JSONObject forfeited_custom_bonus(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
+      mainObj = DBtoJson(mainObj, "report", "select accountid, " 
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as fullname, "
+                              + " accountid as 'Account ID', "
+                              + " (select fullname from tblsubscriber where accountid=a.accountid) as 'Fullname', "
+                              + " (select Username from tblsubscriber where accountid=a.accountid) as 'Username', "
+                              + " bonus_type as 'Bonus Type', " 
+                              + " amount as 'Amount', " 
+                              + " date_format(datetrn,'%Y-%m-%d') as 'Date', " 
+                              + " date_format(datetrn,'%r') as 'Time' "
+                              + " from tblbonusreturn as a where bonus_code not in (select promocode from tblpromotion where build_in=1) and operatorid='"+operatorid+"' "
                               + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
                               + " order by id asc");
 
