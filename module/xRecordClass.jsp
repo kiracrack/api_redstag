@@ -1173,7 +1173,7 @@
 
             ResultSet rst_deposit = null; 
             rst_deposit =  SelectQuery("select sum(amount) as total from tbldeposits as a where confirmed=1 and cancelled=0 " 
-                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_deposit.next()){
                 this.deposit = rst_deposit.getDouble("total") ;
             }
@@ -1181,7 +1181,7 @@
 
             ResultSet rst_withdraw = null; 
             rst_withdraw =  SelectQuery("select sum(amount) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
-                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_withdraw.next()){
                 this.withdraw = rst_withdraw.getDouble("total") ;
             }
@@ -1189,7 +1189,7 @@
 
             ResultSet rst_bonus_withdraw = null; 
             rst_bonus_withdraw =  SelectQuery("select sum(amount) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
-                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and promocode in (select promocode from tblpromotion where build_in=0) and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and (select masteragentid from tblsubscriber where accountid=a.accountid)='101-00019' and promocode in (select promocode from tblpromotion where build_in=0) and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_bonus_withdraw.next()){
                 this.bonus_withdraw = rst_bonus_withdraw.getDouble("total") ;
             }
@@ -1241,7 +1241,7 @@
             ResultSet rst_return = null; 
             rst_return =  SelectQuery("select sum(amount-cashout) as total from tblwithdrawal as a where confirmed=1 and cancelled=0 " 
                               + " and (promocode in (select promocode from tblpromotion where build_in=1) or promocode='telco_deposit') "
-                              + " and operatorid='"+operatorid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and operatorid='"+operatorid+"' and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_return.next()){
                 this.bonus_return = rst_return.getDouble("total") ;
             }
@@ -1314,7 +1314,7 @@
 
             ResultSet rst_deposit = null; 
             rst_deposit =  SelectQuery("select sum(amount) as total from tbldeposits where confirmed=1 and cancelled=0 " 
-                              + " and accountid='"+accountid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and accountid='"+accountid+"' and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_deposit.next()){
                 this.deposit = rst_deposit.getDouble("total") ;
             }
@@ -1322,7 +1322,7 @@
 
             ResultSet rst_withdraw = null; 
             rst_withdraw =  SelectQuery("select sum(amount) as total from tblwithdrawal where confirmed=1 and cancelled=0 " 
-                              + " and accountid='"+accountid+"' and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and accountid='"+accountid+"' and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_withdraw.next()){
                 this.withdraw = rst_withdraw.getDouble("total") ;
             }
@@ -1330,7 +1330,7 @@
 
              ResultSet rst_bonus_withdraw = null; 
             rst_bonus_withdraw =  SelectQuery("select sum(amount) as total from tblwithdrawal where confirmed=1 and cancelled=0 " 
-                              + " and accountid='"+accountid+"' and promocode in (select promocode from tblpromotion where build_in=0) and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
+                              + " and accountid='"+accountid+"' and promocode in (select promocode from tblpromotion where build_in=0) and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'");
             while(rst_bonus_withdraw.next()){
                 this.bonus_withdraw = rst_bonus_withdraw.getDouble("total") ;
             }

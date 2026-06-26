@@ -638,9 +638,9 @@ try{
                                 + " accountname as 'Account Name', "
                                 + " 0 as 'Deposits', "
                                 + " amount as 'Withdrawal', "
-                                + " date_format(datetrn,'%Y-%m-%d') as 'Date', "
-                                + " date_format(datetrn,'%r') as 'Time',  "
-                                + " datetrn, "
+                                + " date_format(dateconfirm,'%Y-%m-%d') as 'Date', "
+                                + " date_format(dateconfirm,'%r') as 'Time',  "
+                                + " dateconfirm, "
                                 + " operatorid " 
                                 + " from tblwithdrawal as a where confirmed=1 and cancelled=0 "
                                 + " and (select masteragentid from tblsubscriber where accountid=a.accountid) in (select ownersaccountid from tbloperator where operatorid='101')  "
@@ -652,14 +652,14 @@ try{
                                 + " (select accountname from tblbankaccounts where id=b.bankid) as 'Account Name', "
                                 + " amount as 'Deposits', "
                                 + " 0 as 'Withdrawal', "
-                                + " date_format(datetrn,'%Y-%m-%d') as 'Date', "
-                                + " date_format(datetrn,'%r') as 'Time',  "
-                                + " datetrn,  "
+                                + " date_format(dateconfirm,'%Y-%m-%d') as 'Date', "
+                                + " date_format(dateconfirm,'%r') as 'Time',  "
+                                + " dateconfirm,  "
                                 + " operatorid " 
                                 + " from tbldeposits as b where (select masteragentid from tblsubscriber where accountid=b.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"') and confirmed=1 and cancelled=0) as x "
                                 + " where operatorid='" + operatorid + "' "
-                                + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
-                                + " order by datetrn asc");
+                                + (range ? " and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                                + " order by dateconfirm asc");
 
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
                               + " select 1, 'Account ID', 'center' union all "
@@ -678,20 +678,20 @@ try{
 
  <%!public JSONObject online_deposit_withdraw_summary(JSONObject mainObj, String operatorid, boolean range, String datefrom, String dateto) {
  
-      mainObj = DBtoJson(mainObj, "report", "select date(datetrn) as 'Date', ifnull(sum(deposit),0) as 'Deposits', ifnull(sum(withdrawal),0) as 'Withdrawals',  ifnull(sum(deposit),0) - ifnull(sum(withdrawal),0) as 'Profit', count(*) as 'Transaction' from  "
-                                + " (select datetrn, operatorid, "
+      mainObj = DBtoJson(mainObj, "report", "select date(dateconfirm) as 'Date', ifnull(sum(deposit),0) as 'Deposits', ifnull(sum(withdrawal),0) as 'Withdrawals',  ifnull(sum(deposit),0) - ifnull(sum(withdrawal),0) as 'Profit', count(*) as 'Transaction' from  "
+                                + " (select dateconfirm, operatorid, "
                                 + " 0 as 'deposit', "
                                 + " amount as 'withdrawal' "
                                 + " from tblwithdrawal as a where confirmed=1 and cancelled=0 "
                                 + " and (select masteragentid from tblsubscriber where accountid=a.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"')  "
                                 + " union all "
-                                + " select datetrn, operatorid, "
+                                + " select dateconfirm, operatorid, "
                                 + " amount as 'deposit', "
                                 + " 0 as 'withdrawal' "
                                 + " from tbldeposits as b where (select masteragentid from tblsubscriber where accountid=b.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"') and confirmed=1 and cancelled=0) as x "
                                 + " where operatorid='" + operatorid + "' "
-                                + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
-                                + " group by date(datetrn) order by date(datetrn) asc");
+                                + (range ? " and date_format(dateconfirm,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                                + " group by date(dateconfirm) order by date(dateconfirm) asc");
 
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
                               + " select 1, 'Date', 'center' union all "
@@ -713,9 +713,9 @@ try{
                                 + " 0 as 'Deposits', "
                                 + " amount as 'Withdrawal', "
                                 + " cancelledreason as 'Cancelled Reason', "
-                                + " date_format(datetrn,'%Y-%m-%d') as 'Date', "
-                                + " date_format(datetrn,'%r') as 'Time',  "
-                                + " datetrn, "
+                                + " date_format(datecancelled,'%Y-%m-%d') as 'Date', "
+                                + " date_format(datecancelled,'%r') as 'Time',  "
+                                + " datecancelled, "
                                 + " operatorid " 
                                 + " from tblwithdrawal as a where cancelled=1 "
                                 + " and (select masteragentid from tblsubscriber where accountid=a.accountid) in (select ownersaccountid from tbloperator where operatorid='101')  "
@@ -728,14 +728,14 @@ try{
                                 + " amount as 'Deposits', "
                                 + " 0 as 'Withdrawal', "
                                 + " cancelledreason as 'Cancelled Reason', "
-                                + " date_format(datetrn,'%Y-%m-%d') as 'Date', "
-                                + " date_format(datetrn,'%r') as 'Time',  "
-                                + " datetrn,  "
+                                + " date_format(datecancelled,'%Y-%m-%d') as 'Date', "
+                                + " date_format(datecancelled,'%r') as 'Time',  "
+                                + " datecancelled,  "
                                 + " operatorid " 
                                 + " from tbldeposits as b where (select masteragentid from tblsubscriber where accountid=b.accountid) in (select ownersaccountid from tbloperator where companyid='"+operatorid+"') and cancelled=1) as x "
                                 + " where operatorid='" + operatorid + "' "
-                                + (range ? " and date_format(datetrn,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
-                                + " order by datetrn asc");
+                                + (range ? " and date_format(datecancelled,'%Y-%m-%d') between '"+datefrom+"' and '"+dateto+"'" : "") 
+                                + " order by datecancelled asc");
 
       mainObj = DBtoJson(mainObj, "column", "select 0 as colIndex, '' as colname, '' as colalign union all "
                               + " select 1, 'Account ID', 'center' union all "
