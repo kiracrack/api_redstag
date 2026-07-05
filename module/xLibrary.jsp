@@ -107,14 +107,14 @@
 <%!public String AttachedReceipt(ServletContext application, String folder, String imageString, String filename) {
      String PhotoUrl = "";
     if(imageString.length() > 0) {
-        String directory = application.getRealPath((GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/images/"+folder+"/" + CurrentMonth());
+        String directory = application.getRealPath((GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/images/"+folder+"/" + CurrentMonth()+ "/"+ CurrentDay());
         File theDir = new File(directory);
         if (!theDir.exists()){
             theDir.mkdirs();
         }
         
         String PhotoLocation = directory + "/"+filename+".png";
-        PhotoUrl = GlobalHostName + (GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/images/"+folder + "/" + CurrentMonth()+ "/"+filename+".png";
+        PhotoUrl = GlobalHostName + (GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/images/"+folder + "/" + CurrentMonth()+ "/"+ CurrentDay() + "/"+filename+".png";
         byte[] data = DatatypeConverter.parseBase64Binary(imageString);
         File file= new File(PhotoLocation);
         
@@ -458,6 +458,13 @@
  <%!public String CurrentMonth(){
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM");
+    return myDateObj.format(myFormatObj);
+  }
+%>
+
+ <%!public String CurrentDay(){
+    LocalDateTime myDateObj = LocalDateTime.now();
+    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd");
     return myDateObj.format(myFormatObj);
   }
 %>
