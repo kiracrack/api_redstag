@@ -215,6 +215,11 @@ try{
         String max_daily_player = request.getParameter("max_daily_player");
         String max_daily_total = request.getParameter("max_daily_total");
         String num_days_cooldown = request.getParameter("num_days_cooldown");
+        
+        /*added july 10, 2026*/
+        boolean availability_time = Boolean.parseBoolean(request.getParameter("availability_time"));
+        String available_time_from = request.getParameter("available_time_from");
+        String available_time_to = request.getParameter("available_time_to");
 
         String qrcode = request.getParameter("qrcode");
         boolean enable = Boolean.parseBoolean(request.getParameter("enable"));
@@ -226,10 +231,10 @@ try{
         }
 
         if(edit){
-            ExecuteQuery("UPDATE tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', max_daily_player='"+max_daily_player+"',max_daily_total='"+max_daily_total+"',num_days_cooldown='"+num_days_cooldown+"', qrcode_url='"+qrcode_url+"', actived="+ enable + " where id='"+id+"'");
+            ExecuteQuery("UPDATE tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', max_daily_player='"+max_daily_player+"',max_daily_total='"+max_daily_total+"',num_days_cooldown='"+num_days_cooldown+"',availability_time="+availability_time+",available_time_from='"+available_time_from+"',available_time_to='"+available_time_to+"', qrcode_url='"+qrcode_url+"', actived="+ enable + " where id='"+id+"'");
             mainObj.put("message","Bank account successfully updated!");
         }else{
-            ExecuteQuery("INSERT INTO tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', max_daily_player='"+max_daily_player+"',max_daily_total='"+max_daily_total+"',num_days_cooldown='"+num_days_cooldown+"', qrcode_url='"+qrcode_url+"', actived="+ enable + ", dateadded=current_timestamp");
+            ExecuteQuery("INSERT INTO tblbankaccounts set isoperator=1, accountid='"+operatorid+"', remittanceid='"+remittanceid+"', accountnumber='"+accountnumber+"', accountname='"+rchar(accountname)+"', max_daily_player='"+max_daily_player+"',max_daily_total='"+max_daily_total+"',num_days_cooldown='"+num_days_cooldown+"',availability_time="+availability_time+",available_time_from='"+available_time_from+"',available_time_to='"+available_time_to+"', qrcode_url='"+qrcode_url+"', actived="+ enable + ", dateadded=current_timestamp");
             mainObj.put("message","Bank account successfully added!");
         }
 

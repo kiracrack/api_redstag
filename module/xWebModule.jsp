@@ -302,6 +302,7 @@
                      + "       GROUP BY bankid "
                      + "    ) g ON b.id = g.bankid "
                      + "    WHERE b.isoperator and NOT b.deleted and b.actived and b.accountid='" + operatorid + "' "
+                     + "    AND (b.availability_time = 0 OR (b.availability_time = 1 AND CURTIME() BETWEEN b.available_time_from AND b.available_time_to)) "
                      + "    AND (b.max_daily_player = 0 OR p.player_total IS NULL OR p.player_total < b.max_daily_player) "
                      + "    AND (b.max_daily_total = 0 OR g.global_total IS NULL OR g.global_total < b.max_daily_total) "
                      + "    AND (b.num_days_cooldown = 0 OR b.cooldown_expired IS NULL OR b.cooldown_expired <= CURDATE() - INTERVAL b.num_days_cooldown DAY) order by RAND() limit 3;");
