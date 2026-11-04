@@ -144,10 +144,13 @@ try{
                     //mainObj = FetchMyBet(mainObj, userid, event.fightkey);
                     
                 }
-                
+
+                LogDailyCheckin(accountid); //daily checkin reward
+
+
                 mainObj.put("message","Login successfull");
                 out.print(mainObj);
-
+               
                 PushFirebaseUsers(info.operatorid, true);
 
                 apiObj = api_account_info(apiObj, accountid, false);
@@ -155,6 +158,7 @@ try{
                 
                 ExecuteQuery("DELETE FROM tblcreditledgerlogs where trnby='"+accountid+"'");
                 ExecuteQuery("DELETE FROM tblgamelogs where accountid='"+accountid+"' and date_format(datetrn,'%Y-%m-%d') < DATE_SUB(CURDATE(), INTERVAL 1 DAY)");
+                 
                 if(!isAllowedMultiSession(accountid)) SendNewLoginSessionNotification(accountid, appreference, deviceid, "session", "New Device Login", "System detected new device login! Your session from this device will be disconnected. <br><br> If this wasn't you, or if you believe that an unauthorized person has accessed your account, please reset your password right away.");
             }else{
                 mainObj.put("status", "ERROR");
@@ -326,3 +330,26 @@ try{
     return ip.matches(PATTERN);
   }
  %>
+
+<%!public void LogDailyCheckin(String accountid) {
+    if(CountQry("tbldailycheckin", "accountid='" + accountid + "'") == 0){
+        ExecuteQuery("INSERT INTO tbldailycheckin set accountid='"+accountid+"', cycle_start_date=current_date, last_login_date=current_date, available_day=1");
+    
+    }else{
+        DailyCheckinChecker d = new DailyCheckinChecker(accountid);
+        if(d.daycount == 1 && d.claimed){ //valid checkin
+            if(d.available_day == 7){
+                ExecuteQuery("UPDATE tbldailycheckin set cycle_start_date=current_date, last_login_date=current_date, available_day=1, claimed=0 where accountid='"+accountid+"'"); 
+                ExecuteQuery("DELETE FROM tbldailyclaim where accountid='"+accountid+"'"); 
+            }else{
+                ExecuteQuery("UPDATE tbldailycheckin set last_login_date=current_date, available_day=LEAST(available_day + 1, 7), claimed=0 where accountid='"+accountid+"'");
+            }
+            
+
+        }else if(d.daycount > 1) { //reset
+            ExecuteQuery("UPDATE tbldailycheckin set cycle_start_date=current_date, last_login_date=current_date, available_day=1, claimed=0 where accountid='"+accountid+"'"); 
+            ExecuteQuery("DELETE FROM tbldailyclaim where accountid='"+accountid+"'"); 
+        }
+    }
+}  
+%>

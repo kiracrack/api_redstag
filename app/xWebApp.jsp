@@ -15,6 +15,15 @@
 try{
 
     String x = Decrypt(request.getParameter("x"));
+
+    if(x.isEmpty()){
+        mainObj.put("status", "ERROR");
+        mainObj.put("message","request not valid");
+        mainObj.put("errorcode", "404");
+        out.print(mainObj);
+        return;
+    }
+
     String userid = request.getParameter("userid");
     String referer = request.getParameter("referer");
     boolean guest = Boolean.parseBoolean(request.getParameter("guest"));
@@ -23,14 +32,7 @@ try{
     if(isVisitorsBlocked(referer)) return;
     LogVisitors(referer, (guest ? "": userid));
 
-    if(x.isEmpty()){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
-        return;
-
-    }else if(globalEnableMaintainance){
+    if(globalEnableMaintainance){
         mainObj.put("status", "ERROR");
         mainObj.put("message", globalMaintainanceMessage);
         mainObj.put("errorcode", "maintenance");
@@ -75,6 +77,7 @@ try{
         mainObj.put("status", "OK");
         AccountInfo info = new AccountInfo(userid);
         if(info.isonlineagent && !info.masteragent){
+            mainObj = api_progress_referral(mainObj, userid);
             mainObj = api_referral_summary(mainObj, userid);
             mainObj = api_game_statistic(mainObj, userid);
         }
@@ -264,7 +267,15 @@ try{
         mainObj.put("status", "OK");
         mainObj.put("message", "response valid");
         out.print(mainObj);
-        
+    
+    }else if(x.equals("daily_checkin")){
+	  		 
+        mainObj.put("status", "OK");
+        mainObj.put("promocode", new PromoDailyCheckin().promocode);
+        mainObj = api_daily_checkin(mainObj, userid);
+        mainObj.put("message", "response valid");
+        out.print(mainObj);
+
     /* api admin functions */
 
     }else{

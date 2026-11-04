@@ -105,7 +105,7 @@ try{
         if(!isBankAccountExist(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Please create bank account first");
-            mainObj.put("errorcode", "400");
+            mainObj.put("errorcode", "800");
             out.print(mainObj);
             return;
 

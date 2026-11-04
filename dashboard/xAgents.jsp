@@ -138,11 +138,11 @@ try{
                 out.print(mainObj);
                 
          }else if(!username.matches("^[a-zA-Z0-9_]+$")) {
-            mainObj.put("status", "ERROR");
-            mainObj.put("message","Invalid username format. please remove special character");
-            mainObj.put("errorcode", "100");
-            out.print(mainObj);
-            return;
+                mainObj.put("status", "ERROR");
+                mainObj.put("message","Invalid username. Only letters, numbers, and underscores are allowed. Spaces and special characters are not permitted.");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
 
         } else {
                 String agent = "";
@@ -161,7 +161,7 @@ try{
                 if (mode.equals("add")){
                     String newid = getOperatorAccount(operatorid, "series_subscriber");
                     String referralcode = getAccountReferralCode();
-                    ExecuteQuery("insert into tblsubscriber set operatorid='"+operatorid+"', isnewaccount=1, referralcode='"+referralcode+"', accountid='"+newid+"', fullname='"+rchar(fullname)+"', displayname='"+rchar(fullname)+"', mobilenumber='"+rchar(mobile)+"', username=LCASE('" + username + "'), password=AES_ENCRYPT('"+rchar(password)+"', '"+globalPassKey+"'), dateregistered=current_timestamp, displayoperatorbank="+displayoperatorbank+", accounttype='"+accounttype+"' " + agent + " "+ (accounttype.equals("master") ? ", masteragentid='"+newid+"'" : ", masteragentid='"+masteragentid+"' ") +  ", commissionrate='" + commission + "' ");
+                    ExecuteQuery("insert into tblsubscriber set operatorid='"+operatorid+"', isnewaccount=1, referralcode='"+referralcode+"', accountid='"+newid+"', fullname='"+rchar(fullname)+"', displayname='"+rchar(fullname)+"', mobilenumber='"+rchar(mobile)+"', username=LCASE('" + rchar(username) + "'), password=AES_ENCRYPT('"+rchar(password)+"', '"+globalPassKey+"'), dateregistered=current_timestamp, displayoperatorbank="+displayoperatorbank+", accounttype='"+accounttype+"' " + agent + " "+ (accounttype.equals("master") ? ", masteragentid='"+newid+"'" : ", masteragentid='"+masteragentid+"' ") +  ", commissionrate='" + commission + "' ");
                     mainObj.put("message","Agent Account Successfully Added");
                     LogActivity(userid,"added agent account name " + fullname);   
                 }else{
@@ -292,7 +292,7 @@ try{
         String newid = getOperatorAccount(info.operatorid, "series_subscriber");
         String referralcode = getAccountReferralCode();
         ExecuteQuery("update tblsubscriber set hasfreeaccount=1, freeaccountid='"+newid+"' where accountid='"+accountid+"'");
-        ExecuteQuery("insert into tblsubscriber set operatorid='"+info.operatorid+"', isnewaccount=1, referralcode='"+referralcode+"', accountid='"+newid+"',  fullname='"+rchar(info.fullname)+"', displayname='"+rchar(info.fullname)+"', mobilenumber='"+rchar(info.mobilenumber)+"', username=LCASE('" + fc_username + "'), password=AES_ENCRYPT('"+rchar(fc_password)+"', '"+globalPassKey+"'), dateregistered=current_timestamp, accounttype='player_non_cash', masteragent=0, isagent=0, iscashaccount=0, isfreecredit=1, agentid='" + fcm.accountid + "', masteragentid='"+fcm.accountid+"'");
+        ExecuteQuery("insert into tblsubscriber set operatorid='"+info.operatorid+"', isnewaccount=1, referralcode='"+referralcode+"', accountid='"+newid+"',  fullname='"+rchar(info.fullname)+"', displayname='"+rchar(info.fullname)+"', mobilenumber='"+rchar(info.mobilenumber)+"', username=LCASE('" + rchar(fc_username) + "'), password=AES_ENCRYPT('"+rchar(fc_password)+"', '"+globalPassKey+"'), dateregistered=current_timestamp, accounttype='player_non_cash', masteragent=0, isagent=0, iscashaccount=0, isfreecredit=1, agentid='" + fcm.accountid + "', masteragentid='"+fcm.accountid+"'");
         
         LogActivity(userid,"added free account name " + fc_username); 
         mainObj = LoadUpdatedAgent(mainObj, accountid);

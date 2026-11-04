@@ -42,7 +42,8 @@ try{
         TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
         if(info.newdeposit > 0 && !checker.qualified){
             mainObj.put("status", "ERROR");
-            mainObj.put("message","Your account is not eligible to withdraw. Please continue placing bets and reach rollover requirement of 1X to withdraw. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  );
+            mainObj.put("message","Withdrawal tidak dibernarkan! Sila penuhi syarat WITHDRAWAL. Teruskan permainan dan mencapai X1 (Turnover) dari jumlah Deposit anda. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  );
+            /*mainObj.put("message","Your account is not eligible to withdraw. Please continue placing bets and reach rollover requirement of 1X to withdraw. <br/></br> Your Current Rollover: " + (checker.total > 0 ? FormatCurrency(String.valueOf(checker.total)) : "0.00")  ); */
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
@@ -386,7 +387,7 @@ try{
             promo_name = "social media bonus";
 
          }else if(info.custom_promo_enabled){
-            amount = amount - info.custom_promo_bonus;
+            amount = amount - (!info.custom_promo_checkin ? info.custom_promo_bonus : 0);
             if(info.custom_promo_maxwd > 0){
                 cashout = (amount <= info.custom_promo_maxwd ? amount : info.custom_promo_maxwd);
             }else{

@@ -41,8 +41,9 @@ try{
         }
         
         String otpcode = getRandomAlphaNumeric();
+        String accountid = getAccountid(mobilenumber);
         String message="Your One-Time PIN (OTP) is "+otpcode+". This pin is valid within 30 mins";
-        ExecuteQuery("insert into tblotp set appreference='"+appreference+"', mobilenumber='6"+mobilenumber+"', otpcode='"+otpcode+"',message='"+message+"',daterequested=current_timestamp, dateexpired=current_timestamp + INTERVAL 30 MINUTE");
+        ExecuteQuery("insert into tblotp set appreference='"+appreference+"', mobilenumber='6"+mobilenumber+"', accountid='"+accountid+"', otpcode='"+otpcode+"',message='"+message+"',daterequested=current_timestamp, dateexpired=current_timestamp + INTERVAL 30 MINUTE");
         SendOTP(appreference,  mobilenumber, otpcode, message);
          
         mainObj.put("status", "OK");
@@ -73,8 +74,8 @@ try{
             out.print(mainObj);
             return;
         }
-
-        ExecuteQuery("update tblotp set confirmed=1 where mobilenumber='"+mobilenumber+"' and otpcode='"+otpcode+"' and appreference='"+appreference+"'");
+        
+        ExecuteQuery("update tblotp set confirmed=1 where otpcode='"+otpcode+"' and appreference='"+appreference+"'");
         
         if(mode.equals("password")){
             mainObj.put("accountid", getAccountid(mobilenumber));
@@ -82,10 +83,14 @@ try{
             
         }else if(mode.equals("signup")){
             mainObj.put("message", "Your mobile number successfully verified! You can now proceed registration");
+
+        }else if(mode.equals("forgot_pass")){
+            mainObj.put("message", "Your mobile number successfully verified! You can now proceed you new password");
         }
         
         mainObj.put("status", "OK");
         mainObj.put("mode", mode);
+        mainObj.put("appreference", appreference);
         out.print(mainObj);
 
     }else if(x.equals("reset_password")){
@@ -100,6 +105,36 @@ try{
             return;
         }
 
+        ExecuteQuery("insert into tblpasswordhistory set userid='"+accountid+"', password=AES_ENCRYPT('"+password+"', '"+globalPassKey+"'),changedate=current_timestamp");
+        ExecuteQuery("update tblsubscriber set password=AES_ENCRYPT('"+rchar(password)+"', '"+globalPassKey+"'), accessattempt=0, accesslocklevel=0, accesslockexpiry=null, accesslockdescription='' where accountid='"+accountid+"'");
+
+        mainObj.put("status", "OK");
+        mainObj.put("message", "Password successfully changed! Please proceed login");
+        mainObj.put("errorcode", "100");
+        out.print(mainObj);
+    
+    }else if(x.equals("reset_web_password")){
+        String password =  request.getParameter("password");
+        String reference = request.getParameter("reference");
+        
+        if(CountQry("tblotp", "confirmed=1 and appreference='"+reference+"'") == 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Invalid password reset app reference");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+        }
+
+        String accountid = QueryDirectData("accountid", "tblotp where confirmed=1 and appreference='"+reference+"'");
+
+        if(CountQry("tblpasswordhistory", "password=AES_ENCRYPT('"+password+"', '"+globalPassKey+"') and userid='" + accountid + "'") > 0){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "You just entered your old password. Please enter new password");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+        }
+       
         ExecuteQuery("insert into tblpasswordhistory set userid='"+accountid+"', password=AES_ENCRYPT('"+password+"', '"+globalPassKey+"'),changedate=current_timestamp");
         ExecuteQuery("update tblsubscriber set password=AES_ENCRYPT('"+rchar(password)+"', '"+globalPassKey+"'), accessattempt=0, accesslocklevel=0, accesslockexpiry=null, accesslockdescription='' where accountid='"+accountid+"'");
 
@@ -123,6 +158,14 @@ try{
 
         String agentid = ""; String operatorid = ""; String masteragentid = "";
         
+        if(!username.matches("^[a-zA-Z0-9_]+$")) {
+            mainObj.put("status", "ERROR");
+            mainObj.put("message","Invalid username. Only letters, numbers, and underscores are allowed. Spaces and special characters are not permitted.");
+            mainObj.put("errorcode", "100");
+            out.print(mainObj);
+            return;
+        }
+
         if(referral.length() > 0 && !ReferralValid(referral) ){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "You entered invalid referral code.");
@@ -154,13 +197,6 @@ try{
         }else if(username.length() > 20) {
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Your username is too long. Please enter username not morethan 20 character");
-            mainObj.put("errorcode", "100");
-            out.print(mainObj);
-            return;
-        
-        }else if(!username.matches("^[a-zA-Z0-9_]+$")) {
-            mainObj.put("status", "ERROR");
-            mainObj.put("message","Invalid username format. please remove special character");
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
@@ -281,7 +317,7 @@ try{
                 + " fullname=ucase('"+rchar(info.fullname)+"'), "
                 + " displayname=ucase('"+rchar(info.fullname)+"'), " 
                 + " mobilenumber='"+info.mobilenumber+"', " 
-                + " username=LCASE('" + info.username + "'), "
+                + " username=LCASE('" + rchar(info.username) + "'), "
                 + " password=AES_ENCRYPT('"+rchar(info.password)+"', '"+globalPassKey+"'), "
                 + " dateregistered=current_timestamp, "
                 + " accounttype='player_cash', isagent=0, "

@@ -139,8 +139,8 @@
     public double welcome_rate, welcome_bonus, welcome_amount, daily_rate, winstrike_bonus, midnight_bonus, midnight_amount, custom_promo_maxwd, custom_promo_turnover, custom_promo_rollover, custom_promo_bonus;
     public boolean iscashaccount, hasfreeaccount, isagent, isonlineagent, isnewaccount, masteragent, displayoperatorbank, blocked, api_enabled, api_player, midnight_available,rebate_available, midnight_enabled, rebate_enabled;
     public boolean telco_enabled, welcome_enabled, daily_enabled, socialmedia_available, socialmedia_enabled, winstrike_available, winstrike_enabled, weekly_loss_enabled, special_bonus_enabled, custom_promo_enabled;
-    public boolean ispromoactive;
-    public int totalonline;
+    public boolean ispromoactive, custom_promo_checkin;
+    public int totalonline, current_referral_count;
     public AccountInfo(String accountid){
         try{
             ResultSet rst = null; 
@@ -175,6 +175,7 @@
                 this.iscashaccount = rst.getBoolean("iscashaccount");
                 this.freeaccountid = rst.getString("freeaccountid");
                 this.referralcode = rst.getString("referralcode");
+                this.current_referral_count = rst.getInt("current_referral_count");
                 this.isagent = rst.getBoolean("isagent");
                 this.masteragent = rst.getBoolean("masteragent");
                 this.displayoperatorbank = rst.getBoolean("displayoperatorbank");
@@ -242,6 +243,7 @@
                 this.custom_promo_turnover = rst.getDouble("custom_promo_turnover");
                 this.custom_promo_rollover = rst.getDouble("custom_promo_rollover");
                 this.custom_promo_bonus = rst.getDouble("custom_promo_bonus");
+                this.custom_promo_checkin = rst.getBoolean("custom_promo_daily_checkin");
 
                 this.ispromoactive = (this.rebate_enabled  || this.midnight_enabled || this.weekly_loss_enabled || this.special_bonus_enabled || this.welcome_enabled || this.daily_enabled || this.socialmedia_enabled || this.winstrike_enabled || this.custom_promo_enabled );
                 
@@ -405,6 +407,43 @@
         }
     }
 }%>
+
+<%!public class ReferralProgress{
+    public int count;
+    public int percent;
+    public double reward;
+    public ReferralProgress(String userid){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("select current_referral_count, (select count(*) from tblreferralrewards where accountid=a.accountid and claimed=1) * 20 AS progress_percent, (select sum(refl_reward) from tblreferralrewards where accountid=a.accountid and claimed=1) AS progress_reward from tblsubscriber as a where accountid='"+userid+"'");
+            while(rst.next()){
+                this.count =  rst.getInt("current_referral_count");
+                this.percent =  rst.getInt("progress_percent");
+                this.reward =  rst.getInt("progress_reward");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-referral-progress",e.toString());
+        }
+    }
+}%>
+
+<%!public class ReferralProgressBonus{
+    public double reward;
+    public ReferralProgressBonus(String userid, String refl_count){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("SELECT rs.refl_reward FROM tblsubscriber s INNER JOIN tblreferralsettings rs ON 1=1 LEFT JOIN tblreferralrewards rr ON rr.accountid = s.accountid AND rr.refl_count = rs.refl_count WHERE s.accountid = '" + userid + "' and rs.refl_count=" + refl_count + " and rr.claimed is null;");
+            while(rst.next()){
+                this.reward =  rst.getDouble("refl_reward");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-referral-progress-bonus",e.toString());
+        }
+    }
+}%>
+
 
 <%!public class BankInfo{
     public String remittanceid, accountnumber, accountname;
@@ -778,7 +817,7 @@
 
 <%!public class PromotionInfo{
     public String title, banner_url, claim_limit;
-    public boolean build_in, fix_amount, first_deposit, approval, cockfight, slotgame;
+    public boolean build_in, fix_amount, first_deposit, approval, cockfight, slotgame, daily_checkin;
     public double amount, turnover, rollover, mindeposit, maxwithdraw, max_claim;
     public PromotionInfo(String promocode){
         try{
@@ -803,10 +842,65 @@
                 this.approval = rst.getBoolean("approval");
                 this.cockfight = rst.getBoolean("cockfight");
                 this.slotgame = rst.getBoolean("slotgame");
+
+                this.daily_checkin = rst.getBoolean("daily_checkin");
             }
             rst.close();
         }catch(SQLException e){
             logError("class-promotion",e.toString());
+        }
+    }
+}%>
+
+<%!public class PromoDailyCheckin{
+    public String promocode; 
+    public PromoDailyCheckin(){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("select promocode from tblpromotion where daily_checkin=1");
+            while(rst.next()){
+                this.promocode = rst.getString("promocode");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-promo-daily-checkin",e.toString());
+        }
+    }
+}%>
+
+<%!public class DailyCheckinConfig{
+    public String promocode;
+    public double min_reward, max_reward;
+    public DailyCheckinConfig(String day_no){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("select min_reward,max_reward from tbldailyconfig where reward_day='" + day_no + "'");
+            while(rst.next()){
+                this.min_reward = rst.getDouble("min_reward");
+                this.max_reward = rst.getDouble("max_reward");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-daily-checkin-config",e.toString());
+        }
+    }
+}%>
+
+<%!public class DailyCheckinChecker{
+    public int daycount, available_day;
+    public boolean claimed;
+    public DailyCheckinChecker(String accountid){
+        try{
+            ResultSet rst = null; 
+            rst =  SelectQuery("select DATEDIFF(CURDATE(), last_login_date) as daycount, claimed, available_day from tbldailycheckin where accountid='" + accountid + "'");
+            while(rst.next()){
+                this.daycount = rst.getInt("daycount");
+                this.available_day = rst.getInt("available_day");
+                this.claimed = rst.getBoolean("claimed");
+            }
+            rst.close();
+        }catch(SQLException e){
+            logError("class-daily-checkin-checker",e.toString());
         }
     }
 }%>

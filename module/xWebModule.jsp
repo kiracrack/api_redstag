@@ -37,6 +37,8 @@
    obj.put("api_player", info.api_player);
    obj.put("api_website", info.api_website);
 
+   obj.put("ispromoactive", info.ispromoactive);
+
    obj.put("midnight_available", info.midnight_available);
    obj.put("midnight_enabled", info.midnight_enabled);
    obj.put("midnight_bonus", info.midnight_bonus);
@@ -68,6 +70,7 @@
    obj.put("custom_promo_name", info.custom_promo_name);
    obj.put("custom_promo_maxwd", info.custom_promo_maxwd);
    obj.put("custom_promo_bonus", info.custom_promo_bonus);
+   obj.put("custom_promo_checkin", info.custom_promo_checkin);
 
    PromotionInfo promo = new PromotionInfo(info.custom_promo_code);
    obj.put("custom_promo_slotgame", promo.slotgame || false);
@@ -134,9 +137,34 @@
       obj.put("referral_commission_available", false);
    }
    
-   JSONArray objarray =new JSONArray();
+   JSONArray objarray = new JSONArray();
    objarray.add(obj);
    mainObj.put("referral", objarray);
+   return mainObj;
+  }
+ %>
+
+ <%!public JSONObject api_progress_referral(JSONObject mainObj,  String userid) {
+   JSONObject obj = new JSONObject();
+   obj = DBtoJson(obj, "data", "SELECT s.accountid, rs.orders, rs.refl_count, rs.refl_reward, rs.imgurl, "
+                                 + "    rr.claimed AS claimed, "
+                                 + "    CASE "
+                                 + "       WHEN COALESCE(rr.claimed,0) = 1 THEN 'claimed' "
+                                 + "       WHEN s.current_referral_count >= rs.refl_count THEN 'available' "
+                                 + "       ELSE 'locked' "
+                                 + "    END AS status "
+                                 + " FROM tblsubscriber s "
+                                 + " INNER JOIN tblreferralsettings rs ON 1=1 "
+                                 + " LEFT JOIN tblreferralrewards rr "
+                                 + "   ON rr.accountid = s.accountid "
+                                 + "    AND rr.refl_count = rs.refl_count "
+                                 + " WHERE s.accountid = '" + userid + "' ORDER BY rs.orders;");
+
+   ReferralProgress rp = new ReferralProgress(userid);
+   obj.put("count", rp.count);
+   obj.put("progress", rp.percent);
+   obj.put("reward", rp.reward);
+   mainObj.put("referral_progress", obj);
    return mainObj;
   }
  %>
@@ -305,7 +333,7 @@
                      + "    AND (b.availability_time = 0 OR (b.availability_time = 1 AND CURTIME() BETWEEN b.available_time_from AND b.available_time_to)) "
                      + "    AND (b.max_daily_player = 0 OR p.player_total IS NULL OR p.player_total < b.max_daily_player) "
                      + "    AND (b.max_daily_total = 0 OR g.global_total IS NULL OR g.global_total < b.max_daily_total) "
-                     + "    AND (b.num_days_cooldown = 0 OR b.cooldown_expired IS NULL OR b.cooldown_expired <= CURDATE() - INTERVAL b.num_days_cooldown DAY) order by RAND() limit 3;");
+                     + "    AND (b.num_days_cooldown = 0 OR b.cooldown_expired IS NULL OR b.cooldown_expired <= CURDATE() - INTERVAL b.num_days_cooldown DAY) order by RAND() limit 1;");
     return mainObj;
  }
  %>
@@ -380,6 +408,43 @@
                             + " sum(if(bet_choice='D',bet_amount,0)) as totalDraw, "
                             + " sum(if(bet_choice='W',bet_amount,0)) as totalWala "
                             + " FROM tblfightbets where fightkey='"+fightkey+"' and operatorid='"+operatorid+"'");
+    return mainObj;
+ }
+ %>
+
+
+ <%!public JSONObject api_daily_checkin(JSONObject mainObj, String userid) {
+    mainObj = DBtoJson(mainObj, "daily_checkin", "SELECT  "
+                                 + " d.day_no, "
+                                 + " CASE "
+                                 + "    WHEN d.day_no IN (2,4) THEN 'BONUS' "
+                                 + "    WHEN d.day_no = 7 THEN 'GRAND_PRIZE' "
+                                 + "    ELSE 'RANDOM' "
+                                 + " END AS reward_type, "
+                                 + " c.reward_amount, "
+                                 + " CASE "
+                                 + "    WHEN c.reward_day IS NOT NULL "
+                                 + "          THEN 'CLAIMED' "
+                                 + "    WHEN d.day_no = p.available_day "
+                                 + "          THEN 'AVAILABLE' "
+                                 + "    ELSE 'LOCKED' "
+                                 + " END AS status "
+                                 + "    FROM "
+                                 + "    ( "
+                                 + "       SELECT 1 day_no "
+                                 + "       UNION ALL SELECT 2 "
+                                 + "       UNION ALL SELECT 3 "
+                                 + "       UNION ALL SELECT 4 "
+                                 + "       UNION ALL SELECT 5 "
+                                 + "       UNION ALL SELECT 6 "
+                                 + "       UNION ALL SELECT 7 "
+                                 + "    ) d "
+                                 + "    INNER JOIN tbldailycheckin p "
+                                 + "       ON p.accountid = '" + userid + "' "
+                                 + "    LEFT JOIN tbldailyclaim c "
+                                 + "       ON c.accountid = p.accountid "
+                                 + "       AND c.reward_day = d.day_no "
+                                 + "    ORDER BY d.day_no;");
     return mainObj;
  }
  %>

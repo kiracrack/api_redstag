@@ -121,11 +121,10 @@ try{
 
         }else if(!username.matches("^[a-zA-Z0-9_]+$")) {
             mainObj.put("status", "ERROR");
-            mainObj.put("message","Invalid username format. please remove special character");
+            mainObj.put("message","Invalid username. Only letters, numbers, and underscores are allowed. Spaces and special characters are not permitted.");
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
-        
         }
         
         String masteragentid = getMasterAgentid(userid);

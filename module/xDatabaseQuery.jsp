@@ -1,5 +1,5 @@
 <%!
-public String sqlAgentQuery = "select operatorid, accountid, username, fullname, accounttype, agentid, isagent, masteragent, masteragentid, displayname, mobilenumber, "
+public String sqlAgentQuery = "select operatorid, accountid, username, address, fullname, accounttype, agentid, isagent, masteragent, masteragentid, displayname, mobilenumber, "
         + " creditbal, commissionrate, displayoperatorbank, lastlogindate, photoupdated, blocked, iscashaccount, photourl, referralcode, isfreecredit, hasfreeaccount, freeaccountid, "
         + " if(accounttype='master', 'Master', if(accounttype='agent', 'Agent', if(accounttype='player_cash', 'Cash', 'Non-Cash'))) as 'accountype', " 
         + " case when blocked=1 then 'Blocked' else 'Active' end as status, " 

@@ -154,15 +154,20 @@ try{
                                 ExecuteQuery("UPDATE tblsubscriber set isnewaccount=0, welcome_enabled=1, welcome_rate="+dep.welcome_rate+", welcome_bonus="+ welcomeBonus +", welcome_amount="+ (dep.amount + welcomeBonus) +"  where accountid='"+accountid+"'");
                                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+accountid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='" + String.valueOf(dep.welcome_rate) + "% welcome bonus', bonuscode='welcome', bonusdate=current_date, amount="+welcomeBonus+", dateclaimed=current_timestamp");
                                 LogLedger(accountid,sessionid, appreference, transactionno,  String.valueOf(dep.welcome_rate) + "% welcome bonus of " + FormatCurrency(String.valueOf(dep.amount)), 0, welcomeBonus, userid);
-                                if(dep.amount >= 50) ExecuteQuery("INSERT INTO tblreferral set accountid='"+accountid+"', referredid='"+info.agentid+"', deposit_amount="+dep.amount+", referral_bonus=15, datedeposit=current_timestamp");
-                            
+
                             }else{
                                 ExecuteQuery("UPDATE tblsubscriber set isnewaccount=0, welcome_enabled=1, welcome_rate="+dep.welcome_rate+", welcome_bonus="+ welcomeBonus +", welcome_amount="+ (dep.amount + welcomeBonus) +"  where accountid='"+accountid+"'");
                                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+accountid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='" + String.valueOf(dep.welcome_rate) + "% welcome bonus', bonuscode='welcome', bonusdate=current_date, amount="+welcomeBonus+", dateclaimed=current_timestamp");
                                 LogLedger(accountid,sessionid, appreference, transactionno,  String.valueOf(dep.welcome_rate) + "% welcome bonus of " + FormatCurrency(String.valueOf(dep.amount)), 0, welcomeBonus, userid);
+ 
+                            }
+                            
+                            if(dep.amount >= 50){
                                 //referral comission meet all conditions
                                 ExecuteQuery("INSERT INTO tblreferral set accountid='"+accountid+"', referredid='"+info.agentid+"', deposit_amount="+dep.amount+", referral_bonus=15, datedeposit=current_timestamp");
-                            }
+                                ExecuteQuery("INSERT INTO tblsubscriber set current_referral_count=current_referral_count + 1 where accountid='"+info.agentid+"'");
+                            } 
+
                             amount = dep.amount + welcomeBonus;
                         }
                     }else{

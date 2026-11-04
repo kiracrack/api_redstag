@@ -76,8 +76,14 @@ try{
         out.print(mainObj);
 
     }else{
+        if(!isBankAccountExist(userid)){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", "Please create bank account first");
+            mainObj.put("errorcode", "800");
+            out.print(mainObj);
+            return;
 
-        if(isBalanceAvailable(userid)){
+        }else if(!info.ispromoactive && isBalanceAvailable(userid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message","Please withdraw your credit balance in order to claim your bonus!");
             mainObj.put("errorcode", "100");
@@ -105,13 +111,14 @@ try{
             out.print(mainObj);
             return;
 
-        }else if((info.ispromoactive ) && info.creditbal > 0){
+        /*}else if((info.ispromoactive ) && info.creditbal > 0){
             mainObj.put("status", "ERROR");
-            mainObj.put("message", "You are currently promo actived!");
-            mainObj.put("errorcode", "400");
+            mainObj.put("message", "Baki Bonus Promosi anda masih aktif!. Menuntut Bonus baharu akan membatalkan Baki Bonus semasa!<br>Jika anda ingin teruskan tuntutan Bonus Sila tekan <font color='green'><b>Yes, Continue</b></font>");
+            mainObj.put("errorcode", "req_override");
             out.print(mainObj);
-            return;
+            return;*/
         }
+        if((info.ispromoactive) && info.creditbal > 0) ForfeitCreditBalance(userid, sessionid);
 
         if(x.equals("claim_referral_bonus")){
             String appreference = request.getParameter("appreference");
@@ -132,13 +139,6 @@ try{
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
                 return;
-            
-            }else if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
 
             }
 
@@ -154,15 +154,7 @@ try{
 
         }else if(x.equals("claim_referral_commission")){
             String appreference = request.getParameter("appreference");
-            
-            if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
-            }
-
+        
             DateWeekly dw = new DateWeekly();
             DownlineWinlossCockfight wls_prev = new DownlineWinlossCockfight(userid, dw.prev_week_from, dw.prev_week_to);
             DownlineWinlossCasino wlc_prev = new DownlineWinlossCasino(userid, dw.prev_week_from, dw.prev_week_to);
@@ -205,13 +197,6 @@ try{
                 out.print(mainObj);
                 return;
 
-            }else if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
-
             }else if(isBonusExistsByDate(userid, "rebate", info.bonus_date)){
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Your rebate bonus is already claimed!");
@@ -247,13 +232,6 @@ try{
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
                 return;
-            
-            }else if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
 
             }else if(isBonusExistsByDate(userid, "turnover", turnover.bonusdate)){
                 mainObj.put("status", "ERROR");
@@ -285,13 +263,6 @@ try{
                 mainObj.put("errorcode", "100");
                 out.print(mainObj);
                 return;
-
-            }else if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
             }
             
             ClearExistingBonus(userid);
@@ -321,13 +292,6 @@ try{
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Weekly loss rebate not available! Please Refresh your account");
                 mainObj.put("errorcode", "100");
-                out.print(mainObj);
-                return;
-
-            }else if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
                 out.print(mainObj);
                 return;
                 
@@ -363,32 +327,53 @@ try{
             String promocode = request.getParameter("promocode");
             String appreference = request.getParameter("appreference");
             PromotionInfo promo = new PromotionInfo(promocode);
+            String daily_checkin_no = "";
+
+            double turnover = 0;  double rollover = 0; double bonus = 0;
+            if(promo.daily_checkin){
+                daily_checkin_no = request.getParameter("day_no");
+                
+                JSONObject obj = new JSONObject();
+                obj = api_daily_checkin(obj, userid);
+
+                if(!isCheckinClaimAvailable(obj, daily_checkin_no)){
+                    mainObj.put("status", "ERROR");
+                    mainObj.put("message", "Daily checkin reward is invalid. Please contrat customer service");
+                    mainObj.put("errorcode", "400");
+                    out.print(mainObj);
+                    return;
+                }else if(!isCurrentDepositAvailable(userid)){
+                    mainObj.put("status", "ERROR");
+                    /*mainObj.put("message","Your account is not eligible to claim this bonus. Promo requires deposit.");*/
+                    mainObj.put("message","Sila penuhi syarat promosi dengan membuat Minimum Deposit dan seterusnya mencapai X1 (turnover) sebelum menuntut Promosi.");
+                    mainObj.put("errorcode", "100");
+                    out.print(mainObj);
+                    return;
+                }
+                
+                DailyCheckinConfig d = new DailyCheckinConfig(daily_checkin_no);
+                bonus = Math.round((d.min_reward + (d.max_reward - d.min_reward) * Math.random()) * 100.0) / 100.0;
+
+
+            }else{
+                if(promo.fix_amount) turnover = promo.amount * promo.turnover;
+                else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
+
+                if(promo.fix_amount) rollover = promo.amount * promo.rollover;
+                else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover;
+
             
-            if(isActiveBetExists(userid)){
-                mainObj.put("status", "ERROR");
-                mainObj.put("message", "You currently have a cockfight bet running. Claim bonus will be available after the game ends.");
-                mainObj.put("errorcode", "400");
-                out.print(mainObj);
-                return;
+                if(promo.fix_amount) bonus = promo.amount;
+                else bonus = info.newdeposit * (promo.amount / 100);
+
+                bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
             }
-
-            double turnover = 0;  double rollover = 0;
-            if(promo.fix_amount) turnover = promo.amount * promo.turnover;
-            else turnover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.turnover;
-
-            if(promo.fix_amount) rollover = promo.amount * promo.rollover;
-            else rollover = (info.newdeposit + (info.newdeposit * (promo.amount / 100))) * promo.rollover;
-
-            double bonus = 0;
-            if(promo.fix_amount) bonus = promo.amount;
-            else bonus = info.newdeposit * (promo.amount / 100);
-
-            bonus = (promo.max_claim > 0 ? (bonus > promo.max_claim ? promo.max_claim : bonus) : bonus);
             
             if(promo.mindeposit > 0){
                 if(info.newdepositdate.equals("")){
                     mainObj.put("status", "ERROR");
-                    mainObj.put("message","Your account is not eligible to claim this bonus. Promo requires deposit.");
+                    /*mainObj.put("message","Your account is not eligible to claim this bonus. Promo requires deposit.");*/
+                    mainObj.put("message","Sila penuhi syarat promosi dengan membuat Minimum Deposit dan seterusnya mencapai X1 (turnover) sebelum menuntut Promosi.");
                     mainObj.put("errorcode", "100");
                     out.print(mainObj);
                     return;
@@ -396,7 +381,8 @@ try{
                     TotalBetsChecker checker = new TotalBetsChecker(userid, info.newdepositdate, info.newdeposit);
                     if(info.newdeposit > 0 && !checker.qualified){
                         mainObj.put("status", "ERROR");
-                        mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met.");
+                        /*mainObj.put("message","Your account is not eligible to claim this bonus. Please continue placing bets using your new deposit until the requirement is met."); */
+                        mainObj.put("message","Baki Deposit anda masih aktif! Sila penuhi syarat promosi dengan mencapai X1 (Turnover) sebelum menuntut Promosi.<br>Baki Deposit dan Hadia ganjaran Promosi tidak dibenarkan bergabung.");
                         mainObj.put("errorcode", "100");
                         out.print(mainObj);
                         return;
@@ -413,7 +399,7 @@ try{
                     return;
                 }
             }
-           
+
             if(promo.approval){
                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=0, dateclaimed=current_timestamp");
                 mainObj.put("status", "OK");
@@ -424,20 +410,66 @@ try{
                 out.print(mainObj);
             }else{
                 
+               
                 ClearExistingBonus(userid);
                 ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+rchar(promo.title)+"', bonuscode='"+promocode+"', bonusdate=current_date, amount="+bonus+", approved=1, dateclaimed=current_timestamp");
-                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+", custom_promo_bonus="+bonus+", newdeposit=0, newdepositdate=current_timestamp where accountid='"+userid+"'");
+                ExecuteQuery("UPDATE tblsubscriber set custom_promo_enabled=1, custom_promo_code='"+promocode+"',custom_promo_name='"+rchar(promo.title)+"', custom_promo_turnover="+turnover+", custom_promo_rollover="+rollover+", custom_promo_maxwd="+promo.maxwithdraw+", custom_promo_bonus="+bonus+", newdeposit=0,custom_promo_daily_checkin="+promo.daily_checkin+", newdepositdate=current_timestamp where accountid='"+userid+"'");
                 ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", bonus, rchar(promo.title), userid);
                 SendBonusNotification(userid, "You have received "+String.format("%,.2f", bonus) + " from " + rchar(promo.title), bonus);
                 
+                
+                if(promo.daily_checkin){
+                    ExecuteQuery("UPDATE tbldailycheckin set claimed=1 where accountid='"+userid+"'");
+                    ExecuteQuery("INSERT INTO tbldailyclaim set accountid='"+userid+"', reward_day='"+daily_checkin_no+"', reward_amount="+bonus+", claimed_date=current_date");
+                    mainObj.put("promocode", promocode);
+                    mainObj.put("isDailyCheckin", true);
+                    mainObj = api_daily_checkin(mainObj, userid);
+                }else{
+                    mainObj = api_account_info(mainObj, userid, false);
+                    mainObj = api_custom_promo(mainObj, userid);
+                    mainObj = api_promotion_list(mainObj, info.operatorid);
+                }
+
                 mainObj.put("status", "OK");
-                mainObj = api_account_info(mainObj, userid, false);
-                mainObj = api_custom_promo(mainObj, userid);
-                mainObj = api_promotion_list(mainObj, info.operatorid);
                 mainObj.put("message", "");
                 out.print(mainObj);
             }
+        
+        }else if(x.equals("claim_progress_bonus")){
+            String refl_count = request.getParameter("refl_count");
+            String appreference = request.getParameter("appreference");
+
+            if(!isReferralProgressValid(userid, refl_count)){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message","Invalid referral bonus");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+
+            }
             
+            ReferralProgressBonus rpb = new ReferralProgressBonus(userid, refl_count);
+
+            if(isBonusExists(userid, "PRB-"+refl_count+"-"+CC(FormatNumber(String.valueOf(rpb.reward))))){
+                mainObj.put("status", "ERROR");
+                mainObj.put("message","Progress referral bonus is already claimed!");
+                mainObj.put("errorcode", "100");
+                out.print(mainObj);
+                return;
+            }
+
+            ClearExistingBonus(userid);
+            ExecuteQuery("INSERT INTO tblbonus set accountid='"+userid+"', operatorid='"+info.operatorid+"', appreference='"+appreference+"', bonus_type='"+FormatNumber(String.valueOf(rpb.reward))+"RM progress referral bonus', bonuscode='PRB-"+refl_count+"-"+ CC(FormatNumber(String.valueOf(rpb.reward))) +"', bonusdate=current_date, amount="+rpb.reward+", dateclaimed=current_timestamp");
+            ExecuteQuery("INSERT INTO tblreferralrewards set accountid='"+userid+"', refl_count='"+refl_count+"', refl_reward='"+rpb.reward+"', claimed=1, dateclaimed=current_timestamp, current_referral='"+info.current_referral_count+"'");
+
+            ExecuteSetScore(info.operatorid, sessionid, appreference, userid, info.fullname, "ADD", rpb.reward, FormatNumber(String.valueOf(rpb.reward))+"RM progress referral bonus", userid);
+            SendBonusNotification(userid, "You have received "+String.format("%,.2f", rpb.reward) + " from " + rchar("Progress referral bonus"), rpb.reward);
+
+            mainObj.put("status", "OK");
+            mainObj = api_progress_referral(mainObj, userid);   
+            mainObj.put("message", "");
+            out.print(mainObj);
+
         }else{
             mainObj.put("status", "ERROR");
             mainObj.put("message","request not valid");
@@ -454,3 +486,30 @@ try{
       logError("app-x-bonus",e.getMessage());
 }
 %>
+
+<%!public boolean isReferralProgressValid(String userid, String refl_count) {
+   return CountRecord("tblsubscriber s INNER JOIN tblreferralsettings rs ON 1=1 LEFT JOIN tblreferralrewards rr ON rr.accountid = s.accountid AND rr.refl_count = rs.refl_count WHERE s.accountid = '" + userid + "' and rs.refl_count='" + refl_count + "' and rr.claimed is null") > 0;
+ }
+ %>
+
+ <%!public boolean isCurrentDepositAvailable(String userid) {
+   return CountRecord("`tbldeposits` where accountid='"+userid+"' and date(dateconfirm)=current_date and amount>5;") > 0;
+ }
+ %>
+
+ <%!public boolean isCheckinClaimAvailable(JSONObject json, String claimDay) {
+    boolean canClaim = false;
+
+    JSONArray dailyCheckin = (JSONArray) json.get("daily_checkin");
+    for (Object obj : dailyCheckin) {
+        JSONObject item = (JSONObject) obj;
+        if (claimDay.equals(String.valueOf(item.get("day_no")))
+                && "AVAILABLE".equalsIgnoreCase(String.valueOf(item.get("status")))) {
+
+            canClaim = true;
+            break;
+        }
+    }
+   return canClaim;
+ }
+ %>

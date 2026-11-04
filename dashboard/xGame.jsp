@@ -450,6 +450,7 @@ try{
 
         JSONParser parser = new JSONParser();
         JSONObject json = (JSONObject) parser.parse(br.readLine());
+        LogCallback(provider, "gamelist",  json.toString());
 
         JSONArray objGameList = (JSONArray) json.get("gameList");
         ExecuteQuery("DELETE from tblgamesource where provider='" + provider + "'");

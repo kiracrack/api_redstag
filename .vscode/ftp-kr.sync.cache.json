@@ -9,12 +9,6 @@
     "META-INF": {},
     "WEB-INF": {},
     "api": {},
-    "api.zip": {
-      "type": "-",
-      "size": 27840880,
-      "lmtime": 0,
-      "modified": false
-    },
     "app": {},
     "callback": {},
     "controller": {},
@@ -22,9 +16,9 @@
     "images": {},
     "index.jsp": {
       "type": "-",
-      "size": 4964,
+      "size": 4965,
       "lmtime": 0,
-      "modified": false
+      "modified": true
     },
     "media": {},
     "module": {},
