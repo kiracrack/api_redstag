@@ -40,10 +40,14 @@ try{
             return;
         }
         
+        if (!mobilenumber.startsWith("6")) {
+            mobilenumber = "6" + mobilenumber;
+        }
+
         String otpcode = getRandomAlphaNumeric();
         String accountid = getAccountid(mobilenumber);
         String message="Your One-Time PIN (OTP) is "+otpcode+". This pin is valid within 30 mins";
-        ExecuteQuery("insert into tblotp set appreference='"+appreference+"', mobilenumber='6"+mobilenumber+"', accountid='"+accountid+"', otpcode='"+otpcode+"',message='"+message+"',daterequested=current_timestamp, dateexpired=current_timestamp + INTERVAL 30 MINUTE");
+        ExecuteQuery("insert into tblotp set appreference='"+appreference+"', mobilenumber='"+mobilenumber+"', accountid='"+accountid+"', otpcode='"+otpcode+"',message='"+message+"',daterequested=current_timestamp, dateexpired=current_timestamp + INTERVAL 30 MINUTE");
         SendOTP(appreference,  mobilenumber, otpcode, message);
          
         mainObj.put("status", "OK");
@@ -60,14 +64,18 @@ try{
         String mobilenumber = request.getParameter("mobilenumber");
         String otpcode = request.getParameter("otpcode");
 
-        if(!isOTPValid(otpcode,appreference, "6" + mobilenumber)){
+        if (!mobilenumber.startsWith("6")) {
+            mobilenumber = "6" + mobilenumber;
+        }
+
+        if(!isOTPValid(otpcode,appreference, mobilenumber)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "OTP you entered is not valid!");
             mainObj.put("errorcode", "100");
             out.print(mainObj);
             return;
          
-        }else if(isOTPExpired(otpcode,appreference, "6" + mobilenumber)){
+        }else if(isOTPExpired(otpcode,appreference, mobilenumber)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", "Your OTP is already expired! Please request another one");
             mainObj.put("errorcode", "100");
