@@ -45,6 +45,11 @@ try{
         String refno = request.getParameter("refno");
         String reference =  request.getParameter("reference");
 
+        if(!IsValidAccountno(accountid)) {
+            logError("malicious-param", accountid);
+            return;
+        }
+
         AccountInfo info = new AccountInfo(accountid);
         if(CountQry("tblsubscriber", "accountid='"+accountid+"' and blocked=0") == 0){
             mainObj.put("status", "ERROR");
@@ -165,7 +170,7 @@ try{
                             if(dep.amount >= 50){
                                 //referral comission meet all conditions
                                 ExecuteQuery("INSERT INTO tblreferral set accountid='"+accountid+"', referredid='"+info.agentid+"', deposit_amount="+dep.amount+", referral_bonus=15, datedeposit=current_timestamp");
-                                ExecuteQuery("INSERT INTO tblsubscriber set current_referral_count=current_referral_count + 1 where accountid='"+info.agentid+"'");
+                                ExecuteQuery("UPDATE tblsubscriber set current_referral_count=current_referral_count + 1 where accountid='"+info.agentid+"'");
                             } 
 
                             amount = dep.amount + welcomeBonus;
@@ -314,7 +319,7 @@ try{
 
 }catch (Exception e){
       mainObj.put("status", "ERROR");
-      mainObj.put("message", e.toString());
+      mainObj.put("message", "request not valid");
       mainObj.put("errorcode", "400");
       out.print(mainObj);
       logError("app-x-score",e.getMessage());

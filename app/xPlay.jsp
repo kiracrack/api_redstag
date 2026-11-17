@@ -30,7 +30,7 @@ try{
 
 }catch (Exception e){
       mainObj.put("status", "ERROR");
-      mainObj.put("message", e.toString());
+      mainObj.put("message", "request not valid");
       mainObj.put("errorcode", "400");
       out.print(mainObj);
       logError("app-x-play",e.getMessage());

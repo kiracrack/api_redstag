@@ -1,5 +1,49 @@
+<%!public boolean isMaliciousQuery(String sql) {
+
+    if(sql == null) return false;
+
+    String s = sql.toLowerCase();
+
+	// allow Firebase token queries
+    if (s.contains("firebasetoken")) {
+        return false;
+    }
+
+	if (s.contains("tblsubscriber set tokenid")) {
+        return false;
+    }
+
+    return s.contains("union select")
+        || s.contains("sleep(")
+        || s.contains("benchmark(")
+        || s.contains("information_schema")
+        || s.contains("mysql.db")
+        || s.contains("mysql.user")
+        || s.contains("load_file(")
+        || s.contains("into outfile") 
+        || s.contains("/*")
+		|| s.contains(",null,null,null")
+		|| s.contains("hex(cast(")
+		|| s.contains("waitfor delay")
+		|| s.contains("--")
+		|| s.matches("(?is).*;\\s*insert\\s+into\\b.*")
+		|| s.matches("(?is).*;\\s*update\\b.*")
+		|| s.matches("(?is).*;\\s*delete\\b.*")
+		|| s.matches("(?is).*;\\s*(update|insert|delete|drop|alter|create|truncate)\\b.*")
+        || s.contains("*/");
+}
+%>
+
 <%-- select command executor --%>
 <%!public ResultSet SelectQuery(String command) {
+
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -111,6 +155,14 @@
 
 <%-- select command executor 2 --%>
 <%!public ResultSet QuerySelect(String command) {
+
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -224,6 +276,13 @@
 
 <%-- execute random --%>
 <%!public void ExecuteRandom(String command, Connection conn,  Statement stmt) {
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     try {
 		redstag_execute db = new redstag_execute();
 		db.disconnect();
@@ -242,6 +301,13 @@
 
 <%-- priority command executor --%>
 <%!public int ExecutePriority(String command) {
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     int i = 0; // default fail
     try {
         redstag_result result = new redstag_result();
@@ -272,6 +338,13 @@
 
 <%-- normal command executor --%>
 <%!public void ExecuteQuery(String command) {
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -364,6 +437,13 @@
 
 <%-- dummy command executor --%>
 <%!public void ExecuteDummy(String command) {
+	
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -459,6 +539,14 @@
 
 <%-- bet command executor --%>
 <%!public void ExecuteBet(String command) {
+	
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -554,6 +642,13 @@
 
 <%-- result command executor --%>
 <%!public void ExecuteResult(String command) {
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -649,6 +744,13 @@
 
 <%-- ledger command executor --%>
 <%!public void ExecuteLedger(String command) {
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
@@ -744,6 +846,13 @@
 
 <%-- report command executor --%>
 <%!public void ExecuteReport(String command) {
+	if (isMaliciousQuery(command)) {
+		logError("malicious-command", command);
+        throw new SecurityException(
+            "Blocked suspicious SQL: " + command
+        );
+    }
+
     Random rand = new Random();
     int method1 =  rand.nextInt(10 - 1) + 1;
 	int method2 =  rand.nextInt(10 - 1) + 1;
