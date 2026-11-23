@@ -3,9 +3,6 @@
 <%@ page import="java.text.DecimalFormat" %>
 <%@ page import="java.io.*" %>
 <%@ page import="java.net.*" %>
-<%!
-String msg = "Hello, World.";
-%>
 <%
 String hostName=request.getServerName();
 %>
@@ -33,7 +30,7 @@ String hostName=request.getServerName();
                     <%= System.getProperty("java.version") %> <%= System.getProperty("java.vendor") %><%= vmName %>
                 </td>
             </tr>
-            <tr>s
+            <tr>
                 <td class="c1">Appserver:</td>
                 <td class="c2">
                     <%= application.getServerInfo() %>
