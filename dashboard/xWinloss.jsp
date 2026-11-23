@@ -7,31 +7,37 @@
 <%@ include file="../module/xRecordClass.jsp" %>
  
 <%
+    String api_file = "dashboard-x-winloss";
     JSONObject mainObj = new JSONObject();
+
 try{
+
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
+
+    String token = null;
     String x = Decrypt(request.getParameter("x"));
     String userid = request.getParameter("userid");
     String sessionid = request.getParameter("sessionid");
 
+    String authHeader = request.getHeader("Authorization");
+    if (authHeader != null  && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+    }
+
     if(x.isEmpty() || userid.isEmpty() || sessionid.isEmpty()){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
         return;
         
     }else if(isAdminSessionExpired(userid,sessionid)){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message", globalExpiredSessionMessageDashboard);
-        mainObj.put("errorcode", "session");
-        out.print(mainObj);
+        out.print(error_admin_session(mainObj));
         return;
-    
+        
     }else if(isAdminAccountBlocked(userid)){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message", globalAdminAccountBlocked);
-        mainObj.put("errorcode", "blocked");
-        out.print(mainObj);
+        out.print(error_admin_blocked(mainObj));
         return;
     }
 
@@ -213,17 +219,11 @@ try{
         
 
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 }catch (Exception e){
-    mainObj.put("status", "ERROR");
-    mainObj.put("message", "request not valid");
-    mainObj.put("errorcode", "400");
-    out.print(mainObj);
-    logError("dashboard-x-report",e.toString());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file, e.getMessage());
 }
 %> 
 

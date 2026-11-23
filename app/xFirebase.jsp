@@ -4,39 +4,60 @@
 <%@ include file="../module/xRecordClass.jsp" %>
 
 <%
-   JSONObject mainObj = new JSONObject();
+    String api_file = "app-x-firebase";
+    JSONObject mainObj = new JSONObject();
+    
 try{
-
-    String x = Decrypt(request.getParameter("x"));
-    String userid = request.getParameter("userid");
-    String sessionid = request.getParameter("sessionid");
-
-    if(x.isEmpty() || userid.isEmpty() || (sessionid.isEmpty() && !isAllowedMultiSession(userid))){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+    
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
         return;
     }
 
+    String token = null;
+    String x = Decrypt(request.getParameter("x"));
+    String userid = request.getParameter("userid");
+    String deviceid = request.getParameter("deviceid");
+    String sessionid = request.getParameter("sessionid"); 
+    String authHeader = request.getHeader("Authorization");
+    
+    if (authHeader != null  && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+    }
+
+    if(x.isEmpty() || userid.isEmpty() || (sessionid.isEmpty() && !isAllowedMultiSession(userid, deviceid))){
+        out.print(error_invalid_request(mainObj));
+        return;
+ 
+    }else if(globalEnableMaintainance){
+        out.print(error_system_maintenance(mainObj));
+        return;
+
+    }else if(isSessionExpired(userid,sessionid)){
+		out.print(error_session_expired(mainObj));
+        return;
+    }
+
+    JwtVerification jwt = new JwtVerification(token, ipaddress, api_file);
+    if(!jwt.valid) {
+        out.print(error_token_authorization(mainObj, jwt.message));
+        return;
+    }
+ 
     if(x.equals("update_token")){
-        String token = request.getParameter("token");
-        ExecuteQuery("update tblgeneralsettings set firebasetoken='"+token+"'");
+        String firetoken = request.getParameter("token");
+        ExecuteQuery("update tblgeneralsettings set firebasetoken='"+firetoken+"'");
         mainObj.put("status", "OK");
         mainObj.put("message", "success");
         out.print(mainObj);
 
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "request not valid");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>

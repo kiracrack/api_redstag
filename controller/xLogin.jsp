@@ -4,17 +4,25 @@
 <%@ include file="../module/xRecordClass.jsp" %>
 
 <%
-   JSONObject mainObj =new JSONObject();
+    String api_file = "controller-x-login";
+    JSONObject mainObj = new JSONObject();
 try{
+
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
 
     String x = Decrypt(request.getParameter("x"));
     String deviceid = request.getParameter("deviceid");
 
-    if(isControllerBlocked(deviceid)){
-        mainObj.put("status", "BLOCKED");
-        mainObj.put("message","Your controller was blocked by administrator!");
-        mainObj.put("errorcode", "100");
-        out.print(mainObj);
+     if(x.isEmpty() || deviceid.isEmpty()){
+        out.print(error_invalid_request(mainObj));
+        return;
+
+    }else if(isControllerBlocked(deviceid)){
+        out.print(error_controller_blocked(mainObj));
         return;
     }
 
@@ -62,21 +70,16 @@ try{
         mainObj = getGeneralSettings(mainObj);
         mainObj = getDummyAccount(mainObj);
         mainObj.put("sessionid", sessionid);
+        mainObj.put("token", new JwtUtil().generateToken2(deviceid));
         mainObj.put("message","request returned valid");
         out.print(mainObj);
  
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", e.toString());
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("controller-x-login",e.toString());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>
 

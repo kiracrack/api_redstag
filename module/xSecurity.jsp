@@ -74,3 +74,173 @@
 	}
  }
 %>
+
+<%!public class JwtVerification{
+    public boolean valid;
+    public String message;
+
+    public JwtVerification(String token, String ipAddress, String api_file){
+        if(token == null){
+            this.valid = false;
+            this.message = globalJwtTokenInvalid;
+            logError(api_file, "blank-security-token: ip "+ipAddress);
+
+        }else if (!jwtUtil.validateToken(token)) {
+            this.valid = false;
+            this.message = globalJwtTokenTampered;
+            logError(api_file, "security-token-tampered: ip "+ipAddress+" ("+token+")");
+
+        }else{
+            this.valid = true;
+            this.message = "";
+        }
+    }
+}%>
+
+<%!public boolean hasMaliciousData(String api_file, HttpServletRequest request, String ipAddress) {
+    for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+        String paramName = entry.getKey();
+        for (String value : entry.getValue()) {
+            if (isMaliciousString(value)) {
+                logError(api_file, "malicious-param: ip " + ipAddress + " / " + paramName + "=" + value);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+%>
+
+<%!public String getIpAddress(HttpServletRequest request) {
+    String ipaddress = request.getParameter("ipaddress");
+    return (ipaddress == null || ipaddress.isEmpty() || ipaddress.equals("null") ? getClientIp(request) : ipaddress);
+}
+%>
+
+<%!public String getClientIp(HttpServletRequest request) {
+    String ip = request.getHeader("X-Forwarded-For");
+    if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+        ip = request.getHeader("X-Real-IP");
+    }
+
+    if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+        ip = request.getRemoteAddr();
+    }
+
+    // X-Forwarded-For may contain multiple IPs
+    if (ip != null && ip.contains(",")) {
+        ip = ip.split(",")[0].trim();
+    }
+    return ip;
+}
+%>
+
+<%!public boolean isMaliciousString(String str) {
+    if (str == null || str.trim().isEmpty()) {
+        return false;
+    }
+
+    String s = str.toLowerCase().trim();
+    return s.contains("union select")
+            || s.contains("sleep(")
+            || s.contains("benchmark(")
+            || s.contains("information_schema")
+            || s.contains("mysql.db")
+            || s.contains("mysql.user")
+            || s.contains("load_file(")
+            || s.contains("into outfile")
+            || s.contains("waitfor delay")
+            || s.contains("hex(cast(")
+            || s.contains("xp_cmdshell")
+            || s.contains("or 1=1")
+            || s.contains("' or '")
+            || s.contains("\" or \"")
+            || s.contains("/*")
+            || s.contains("*/")
+            || s.contains("--")
+            || s.contains("#")
+            || s.contains(",null,null,null")
+            || s.matches("(?is).*\\binsert\\s+into\\b.*")
+            || s.matches("(?is).*\\bupdate\\s+\\w+\\s+set\\b.*")
+            || s.matches("(?is).*\\bdelete\\s+from\\b.*")
+            || s.matches("(?is).*\\bselect\\s+.*\\bfrom\\b.*");
+}
+%>
+
+<%!public JSONObject error_token_authorization(JSONObject mainObj, String message) {
+    mainObj.put("status", "ERROR");
+    mainObj.put("message", message);
+    mainObj.put("errorcode", "session");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_token_controller(JSONObject mainObj, String message) {
+    mainObj.put("status", "UNAUTHORIZED");
+    mainObj.put("message", message);
+    mainObj.put("errorcode", "session");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_invalid_request(JSONObject mainObj) {
+    mainObj.put("status", "ERROR");
+    mainObj.put("message", "bad request: request not valid");
+    mainObj.put("errorcode", "400");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_exception(JSONObject mainObj) {
+    mainObj.put("status", "ERROR");
+    mainObj.put("message", "error exeception");
+    mainObj.put("errorcode", "400");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_system_maintenance(JSONObject mainObj) {
+    mainObj.put("status", "ERROR");
+    mainObj.put("message", globalMaintainanceMessage);
+    mainObj.put("errorcode", "maintenance");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_session_expired(JSONObject mainObj) {
+    mainObj.put("status", "ERROR");
+	mainObj.put("message", globalExpiredSessionMessage);
+    mainObj.put("errorcode", "session");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_admin_blocked(JSONObject mainObj) {
+    mainObj.put("status", "ERROR");
+    mainObj.put("message", globalAdminAccountBlocked);
+    mainObj.put("errorcode", "blocked");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_admin_session(JSONObject mainObj) {
+     mainObj.put("status", "ERROR");
+    mainObj.put("message", globalExpiredSessionMessageDashboard);
+    mainObj.put("errorcode", "session");
+    return mainObj;
+}%>
+
+<%!public JSONObject error_controller_removed(JSONObject mainObj) {
+    mainObj.put("status", "BLOCKED");
+    mainObj.put("message","Your controller was removed by administrator!");
+    mainObj.put("errorcode", "blocked"); 
+    return mainObj;
+}%>
+
+<%!public JSONObject error_controller_blocked(JSONObject mainObj) {
+    mainObj.put("status", "BLOCKED");
+    mainObj.put("message","Your controller was blocked by administrator!");
+    mainObj.put("errorcode", "100");
+    return mainObj;
+}%>
+
+
+<%!public JSONObject error_api_parameter(JSONObject mainObj) {
+    mainObj.put("status", "BLOCKED");
+    mainObj.put("message","bad request, missing parameter");
+    mainObj.put("errorcode", "100");
+    return mainObj;
+}%>

@@ -39,7 +39,10 @@
 <%@ page import="java.util.SortedMap" %>
 <%@ page import="java.util.stream.Collectors" %>
 
-<%@ page import="connection.*" %>
+<%@ page import="io.jsonwebtoken.Jwts" %>
+<%@ page import="io.jsonwebtoken.SignatureAlgorithm" %>
+
+<%@ page import="connection.*" %> 
 <%@ include file="xSecurity.jsp" %>
 <%@ include file="xFormatting.jsp" %>
 <%@ include file="xDatabaseClass.jsp" %>
@@ -77,6 +80,9 @@ public String GlobalDefaultOperator = "";
 public double GlobalFightCommission = 0;
 
 
+public String globalJwtTokenInvalid = "Security verification failed because the required authentication token was not found. This session has been disconnected to protect your account.  <br><br>Please sign in again to continue.";
+public String globalJwtTokenTampered = "Security verification failed. Your session is no longer valid and has been disconnected to protect your account. Please sign in again to continue.  <br><br>If you did not initiate this activity, we recommend changing your password immediately.";
+
 public String globalMaintainanceMessage = "Server is currently undergoing maintenance. please try again later";
 public String globalExpiredSessionMessage = "System detected new device login! Your session from this device will be disconnected. <br><br> If this wasn't you, or if you believe that an unauthorized person has accessed your account, please reset your password right away.";
 public String globalExpiredSessionMessageDashboard = "System detected new device login! Your session from this device will be disconnected.";
@@ -99,6 +105,7 @@ public String GlobalDate = "";
 public String GlobalTime = "";
 public boolean globalExecuteUpdate = false;
 public boolean globalEnableMaintainance = false;
+public JwtUtil jwtUtil;
 
 public static final String[] HEADERS_TO_TRY = {
             "X-Forwarded-For",
@@ -162,10 +169,8 @@ try{
 	pusher = new Pusher(globalPusherAppID, globalPusherAppKey, globalPusherAppSecret);
     pusher.setCluster(globalPusherAppCluster);
     pusher.setEncrypted(true);
-	
-	if(globalExecuteUpdate){
-		ExecuteDatabaseUpgrade();
-	}
+
+	jwtUtil = new JwtUtil();
 
 }catch(SQLException e){
 	logError("db-sql-exception", e.toString());

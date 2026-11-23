@@ -8,32 +8,42 @@
 <%@ include file="../module/xGameModule.jsp" %>
 
 <%
-   JSONObject mainObj =new JSONObject();
+    String api_file = "controller-x-dummy";
+    JSONObject mainObj = new JSONObject();
 try{
 
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
+
+    String token = null;
     String x = Decrypt(request.getParameter("x"));
     String deviceid = request.getParameter("deviceid");
     String sessionid = request.getParameter("sessionid");
 
+    String authHeader = request.getHeader("Authorization");    
+    if (authHeader != null  && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+    }
+
+    JwtVerification jwt = new JwtVerification(token, ipaddress, api_file);
+    if(!jwt.valid) {
+        out.print(error_token_controller(mainObj, jwt.message));
+        return;
+    }
+
     if(x.isEmpty() || deviceid.isEmpty() || sessionid.isEmpty()){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
         return;
 
     }else if(isControllerRemoved(deviceid)){
-        mainObj.put("status", "BLOCKED");
-        mainObj.put("message","Your controller was removed by administrator!");
-        mainObj.put("errorcode", "100");
-        out.print(mainObj);
+        out.print(error_controller_removed(mainObj));
         return;
 
     }else if(isControllerBlocked(deviceid)){
-        mainObj.put("status", "BLOCKED");
-        mainObj.put("message","Your controller was blocked by administrator!");
-        mainObj.put("errorcode", "100");
-        out.print(mainObj);
+        out.print(error_controller_blocked(mainObj));
         return;
     }
 
@@ -86,16 +96,10 @@ try{
        
 
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", e.toString());
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("controller-x-dummy",e.getMessage());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>

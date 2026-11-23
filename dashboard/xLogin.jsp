@@ -3,11 +3,19 @@
 <%@ include file="../module/xRecordModule.jsp" %>
 <%@ include file="../module/xRecordClass.jsp" %>
  
-<%
-   JSONObject mainObj = new JSONObject();
+<%  
+    String api_file = "dashboard-x-login";
+    JSONObject mainObj = new JSONObject();
+
 try{
 
-String x = Decrypt(request.getParameter("x"));   
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
+    
+    String x = Decrypt(request.getParameter("x"));   
 
     if(x.equals("check_license")){
         String dversion = request.getParameter("dversion");  
@@ -56,6 +64,7 @@ String x = Decrypt(request.getParameter("x"));
             ExecuteQuery("DELETE FROM tblcreditledgerlogs where trnby='"+userid+"'");
             ExecuteQuery("update tbladminaccounts set sessionid='"+sessionid+"',lastlogin=current_timestamp where id='"+userid+"'");
             mainObj.put("status", "OK");
+            mainObj.put("token", new JwtUtil().generateToken(username));
             mainObj = getGeneralSettings(mainObj);
             mainObj = getAdminProfile(mainObj, userid);
             mainObj = LoadOperators(mainObj);
@@ -64,36 +73,14 @@ String x = Decrypt(request.getParameter("x"));
             out.print(mainObj);
             LogActivity(userid,"Successfull login");
         }
-        
-    }else if (x.equals("add_root_account")) {
-        String fullname = request.getParameter("fullname");
-        String address = request.getParameter("address");
-        String emailaddress = request.getParameter("emailaddress");
-        String mobilenumber = request.getParameter("mobilenumber");
-        String password = request.getParameter("password");
-
-        String userid = getSystemSeriesID("series_admin");
-        String sessionid = UUID.randomUUID().toString();
-        ExecuteQuery("insert into tbladminaccounts set id='"+userid+"',fullname='"+fullname+"', address='"+rchar(address)+"', emailaddress='"+emailaddress+"', mobilenumber='"+mobilenumber+"',username='root', password = AES_ENCRYPT('"+password+"', '"+globalPassKey+"'), sessionid='"+sessionid+"', dateregistered=current_timestamp, superadmin=1 ");
-
-        mainObj.put("status", "OK");
-        mainObj.put("message", "Admin account successfully added!");
-        out.print(mainObj);
-        LogActivity(userid,"added admin account profile");
 
 
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 
 }catch(Exception e){
-  mainObj.put("status", "ERROR");
-  mainObj.put("message", "request not valid");
-  mainObj.put("errorcode", "400");
-  out.print(mainObj);
-  logError("dashboard-x-login",e.toString());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>

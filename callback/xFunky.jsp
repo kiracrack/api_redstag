@@ -14,6 +14,13 @@
 try{
     String provider = "funky";
     String x = Decrypt(request.getParameter("x"));
+    String ipaddress = request.getParameter("ipaddress");
+    
+    if (hasMaliciousData(provider, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
+
     if(globalEnableMaintainance){
         mainObj.put("status", "ERROR");
         mainObj.put("message", globalMaintainanceMessage);

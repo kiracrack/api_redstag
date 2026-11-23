@@ -7,8 +7,16 @@
 <%@ include file="../module/xApiClass.jsp" %>
 
 <%
-   JSONObject mainObj = new JSONObject();
+    String api_file = "api-x-login";
+    JSONObject mainObj = new JSONObject();
+
 try{
+
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
 
     String x = Decrypt(request.getParameter("x"));
     String sessionid = request.getParameter("sessionid");
@@ -33,23 +41,18 @@ try{
         
         if(LogLoginSession(info.accountid, sessionid, "webapp", "webapp", "")){
             mainObj.put("status", "OK");
+            mainObj.put("token", new JwtUtil().generateToken(info.accountid));
             mainObj = api_account_info(mainObj, info.accountid, true);
             mainObj.put("message","login succeeded");
             out.print(mainObj);
         }
  
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","bad request, method not valid");
-        mainObj.put("errorcode", "400");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "bad request, missing parameter");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("api-x-login",e.getMessage());
+    out.print(error_api_parameter(mainObj));
+    logError(api_file, e.getMessage());
 }
 %>

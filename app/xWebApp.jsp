@@ -11,11 +11,18 @@
 <%@ include file="../module/xApiClass.jsp" %>
 
 <%
-   JSONObject mainObj =new JSONObject();
+   String api_file = "app-x-webapp";
+    JSONObject mainObj = new JSONObject();
+    
 try{
-
+    
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
+ 
     String x = Decrypt(request.getParameter("x"));
-
     if(x.isEmpty()){
         mainObj.put("status", "ERROR");
         mainObj.put("message","request not valid");
@@ -24,13 +31,12 @@ try{
         return;
     }
 
-    String userid = request.getParameter("userid");
-    String referer = request.getParameter("referer");
+    String userid = request.getParameter("userid"); 
     boolean guest = Boolean.parseBoolean(request.getParameter("guest"));
-     
-    if(referer == null) referer = getDirectIPAddress(request);
-    if(isVisitorsBlocked(referer)) return;
-    LogVisitors(referer, (guest ? "": userid));
+
+    if(ipaddress == null) ipaddress = getClientIp(request);
+    if(isVisitorsBlocked(ipaddress)) return;
+    LogVisitors(ipaddress, (guest ? "": userid));
 
     if(globalEnableMaintainance){
         mainObj.put("status", "ERROR");
@@ -41,13 +47,29 @@ try{
 
     }else if(!guest){
         String sessionid = request.getParameter("sessionid");
-        if(isSessionExpired(userid,sessionid)){
+        String authHeader = request.getHeader("Authorization");
+        String token = null;
+
+        if (authHeader != null  && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
+        //jwt token validation
+        JwtVerification jwt = new JwtVerification(token, ipaddress, api_file);
+        if(!jwt.valid){
+            mainObj.put("status", "ERROR");
+            mainObj.put("message", jwt.message);
+            mainObj.put("errorcode", "session");
+            out.print(mainObj);
+            return;
+        }else if(isSessionExpired(userid,sessionid)){
             mainObj.put("status", "ERROR");
             mainObj.put("message", globalExpiredSessionMessage);
             mainObj.put("errorcode", "session");
             out.print(mainObj);
             return;
         }
+        
     }
     
     if(!guest) mainObj = api_account_info(mainObj, userid, false);
@@ -279,18 +301,12 @@ try{
     /* api admin functions */
 
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "request not valid");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("app-x-webapp",e.getMessage());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>
 

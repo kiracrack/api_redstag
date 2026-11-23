@@ -6,9 +6,16 @@
 <%@ include file="../module/xPusher.jsp" %>
 <%@ include file="../module/xSmsModule.jsp" %>
 
-<%
-   JSONObject mainObj =new JSONObject();
+<%  
+    String api_file = "app-x-public";
+    JSONObject mainObj = new JSONObject();
 try{
+
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
 
     String x = Decrypt(request.getParameter("x"));
 
@@ -260,17 +267,11 @@ try{
         }
 
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "request not valid");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("app-x-public",e.getMessage());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>
 

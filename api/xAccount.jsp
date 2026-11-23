@@ -7,13 +7,19 @@
 <%@ include file="../module/xApiClass.jsp" %>
 
 <%
-   JSONObject mainObj = new JSONObject();
+    String api_file = "api-x-account";
+    JSONObject mainObj = new JSONObject();
 try{
 
     String x = Decrypt(request.getParameter("x"));
     String key = request.getParameter("key");
     String userid = request.getParameter("userid");
     String referer = request.getParameter("referer");
+
+    if (hasMaliciousData(api_file, request, referer)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
 
     if(x.isEmpty() || key.isEmpty() || userid.isEmpty() || referer.isEmpty()){
         mainObj.put("status", "ERROR");
@@ -211,18 +217,12 @@ try{
         out.print(mainObj);
  
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","bad request, method not valid");
-        mainObj.put("errorcode", "400");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "bad request, missing parameter");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("api-x-account",e.getMessage());
+    out.print(error_api_parameter(mainObj));
+    logError(api_file, e.getMessage());
 }
 %>
 

@@ -7,33 +7,39 @@
 <%@ include file="../module/xRecordClass.jsp" %>
 <%@ include file="../module/xGameModule.jsp" %>
 <%
+
+    String api_file = "dashboard-x-tools";
     JSONObject mainObj = new JSONObject();
     JSONObject apiObj = new JSONObject();
 
 try{
+
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
+
+    String token = null;
     String x = Decrypt(request.getParameter("x"));
     String userid = request.getParameter("userid");
     String sessionid = request.getParameter("sessionid");
 
-    if(x.isEmpty() || userid.isEmpty() || sessionid.isEmpty()){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
-        return;
+    String authHeader = request.getHeader("Authorization");
+    if (authHeader != null  && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+    }
 
-    }else if(isAdminSessionExpired(userid,sessionid)){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message", globalExpiredSessionMessageDashboard);
-        mainObj.put("errorcode", "session");
-        out.print(mainObj);
+    if(x.isEmpty() || userid.isEmpty() || sessionid.isEmpty()){
+        out.print(error_invalid_request(mainObj));
         return;
-    
+        
+    }else if(isAdminSessionExpired(userid,sessionid)){
+        out.print(error_admin_session(mainObj));
+        return;
+        
     }else if(isAdminAccountBlocked(userid)){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message", globalAdminAccountBlocked);
-        mainObj.put("errorcode", "blocked");
-        out.print(mainObj);
+        out.print(error_admin_blocked(mainObj));
         return;
     }
 
@@ -310,61 +316,12 @@ try{
         mainObj.put("message", "Successfull Synchronized");
         out.print(mainObj);
 
-    }else if(x.equals("load_images")){
-        mainObj.put("status", "OK");
-        mainObj = LoadImages(mainObj);
-        mainObj.put("message", "Successfull Synchronized");
-        out.print(mainObj);
-
-    }else if(x.equals("upload_image")){
-        String filename = request.getParameter("filename");
-        String extension = request.getParameter("extension");
-        String imagebinary = request.getParameter("imagebinary");
-         
-        if(isImageExists(filename)){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message","Filename is already exists!");
-            mainObj.put("errorcode", "101");
-            out.print(mainObj);
-            return;
-        }
-
-        ServletContext serveapp = request.getSession().getServletContext();
-        String imageurl = AttachedImage(serveapp, imagebinary, filename + extension);
-        
-        ExecuteQuery("insert into tblimages set filename='"+filename+"', extension='"+extension+"', imageurl='"+imageurl+"'");
-
-        mainObj.put("status", "OK");
-        mainObj = LoadImages(mainObj);
-        mainObj.put("message", "Image successfully uploaded");
-        out.print(mainObj);
-
-     }else if(x.equals("delete_image")){
-        String id = request.getParameter("id");
-        
-        ImageInfo img = new ImageInfo(id);
-        ServletContext serveapp = request.getSession().getServletContext();
-        DeleteImage(serveapp, img.filename);
-        
-        ExecuteQuery("DELETE from tblimages where id='"+id+"'");
-
-        mainObj.put("status", "OK");
-        mainObj = LoadImages(mainObj);
-        mainObj.put("message", "Image successfully deleted");
-        out.print(mainObj);
-
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj));
     }
 }catch (Exception e){
-    mainObj.put("status", "ERROR");
-    mainObj.put("message", "request not valid");
-    mainObj.put("errorcode", "400");
-    out.print(mainObj);
-    logError("dashboard-x-tools",e.toString());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file, e.getMessage());
 }
 %>
 
@@ -377,12 +334,6 @@ try{
     return CountQry("tblfightbets", "fightkey='"+fightkey+"'") > 0;
   }
 %>
-
-<%!public boolean isImageExists(String filename) {
-    return CountQry("tblimages", "filename='"+filename+"'") > 0;
-  }
-%>
-
 
 <%!public JSONObject LoadFightResultLogs(JSONObject mainObj, String operatorid, String datefrom, String dateto) {
     mainObj = DBtoJson(mainObj, "fight_result", "select eventid,fightkey,fightnumber, case  when result='M' then 'MERON'  when result='D' then 'DRAW' when result='W' then 'WALA' else 'CANCELLED' end as result, "

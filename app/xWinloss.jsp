@@ -6,32 +6,45 @@
 <%@ include file="../module/xRecordClass.jsp" %>
 
 <%
-   JSONObject mainObj =new JSONObject();
+   
+    String api_file = "app-x-winloss";
+    JSONObject mainObj = new JSONObject();
+    
 try{
+    
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
 
+    String token = null;
     String x = Decrypt(request.getParameter("x"));
     String userid = request.getParameter("userid");
+    String deviceid = request.getParameter("deviceid");
     String sessionid = request.getParameter("sessionid");
 
-    if(x.isEmpty() || userid.isEmpty() || (sessionid.isEmpty() && !isAllowedMultiSession(userid))){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
-        return;
+    String authHeader = request.getHeader("Authorization");    
+    if (authHeader != null  && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+    }
 
+    if(x.isEmpty() || userid.isEmpty() || (sessionid.isEmpty() && !isAllowedMultiSession(userid, deviceid))){
+        out.print(error_invalid_request(mainObj));
+        return;
+ 
     }else if(globalEnableMaintainance){
-        mainObj.put("status", "ERROR");
-        mainObj.put("message", globalMaintainanceMessage);
-        mainObj.put("errorcode", "maintenance");
-        out.print(mainObj);
+        out.print(error_system_maintenance(mainObj));
         return;
 
     }else if(isSessionExpired(userid,sessionid)){
-		mainObj.put("status", "ERROR");
-		mainObj.put("message", globalExpiredSessionMessage);
-        mainObj.put("errorcode", "session");
-		out.print(mainObj);
+		out.print(error_session_expired(mainObj));
+        return;
+    }
+
+    JwtVerification jwt = new JwtVerification(token, ipaddress, api_file);
+    if(!jwt.valid) {
+        out.print(error_token_authorization(mainObj, jwt.message));
         return;
     }
  
@@ -172,18 +185,12 @@ try{
         }
  
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+       out.print(error_invalid_request(mainObj));
     }
 
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "request not valid");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("app-x-report",e.getMessage());
+    out.print(error_invalid_request(mainObj));
+    logError(api_file,e.getMessage());
 }
 %>
  

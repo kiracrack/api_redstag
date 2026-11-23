@@ -276,8 +276,8 @@
   }
  %>
 
- <%!public boolean isAllowedMultiSession(String userid) {
-    return CountQry("tblmultisession", "accountid='" + userid + "'") > 0;
+ <%!public boolean isAllowedMultiSession(String userid, String deviceid) {
+    return CountQry("tblmultisession", "accountid='" + userid + "' and deviceid='"+deviceid+"'") > 0;
   }
  %>
 

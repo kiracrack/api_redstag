@@ -8,9 +8,16 @@
 <%@ include file="../module/xPusher.jsp" %>
 
 <%
-   JSONObject mainObj =new JSONObject();
-   JSONObject apiObj = new JSONObject();
+    String api_file = "app-x-login";
+    JSONObject mainObj =new JSONObject();
+    JSONObject apiObj = new JSONObject();
 try{
+
+    String ipaddress = getIpAddress(request);
+    if (hasMaliciousData(api_file, request, ipaddress)) {
+        out.print(error_invalid_request(mainObj));
+        return;
+    }
 
     String x = Decrypt(request.getParameter("x"));
 
@@ -21,7 +28,7 @@ try{
         out.print(mainObj);
         return;
     }
-
+ 
     if(x.equals("check_update")){
          Double appVersion = Double.parseDouble(request.getParameter("appversion"));
         if(CheckAppUpdate(appVersion)){
@@ -43,8 +50,7 @@ try{
         String username = rchar(request.getParameter("username"));
         String password = rchar(request.getParameter("password"));
         String deviceid = request.getParameter("deviceid");
-        String devicename = request.getParameter("devicename");
-        String ipaddress = request.getParameter("ipaddress");
+        String devicename = request.getParameter("devicename"); 
         Double appVersion = Double.parseDouble(request.getParameter("appversion"));
         if(!isValiIpAddress(ipaddress)) ipaddress = "";
 
@@ -100,7 +106,7 @@ try{
 
         try{
             String accountid = (autologin? userid : getAccountid(username, password));
-            String newsessionid = (isAllowedMultiSession(accountid) ? "" : UUID.randomUUID().toString()); 
+            String newsessionid = (isAllowedMultiSession(accountid, deviceid) ? "" : UUID.randomUUID().toString()); 
 
             AccountInfo info = new AccountInfo(accountid);
             if(!devicename.equals("webapp") && info.api_enabled){
@@ -149,6 +155,9 @@ try{
 
 
                 mainObj.put("message","Login successfull");
+                mainObj.put("token", new JwtUtil().generateToken(username));
+ 
+                
                 out.print(mainObj);
                
                 PushFirebaseUsers(info.operatorid, true);
@@ -159,7 +168,7 @@ try{
                 ExecuteQuery("DELETE FROM tblcreditledgerlogs where trnby='"+accountid+"'");
                 ExecuteQuery("DELETE FROM tblgamelogs where accountid='"+accountid+"' and date_format(datetrn,'%Y-%m-%d') < DATE_SUB(CURDATE(), INTERVAL 1 DAY)");
                  
-                if(!isAllowedMultiSession(accountid)) SendNewLoginSessionNotification(accountid, appreference, deviceid, "session", "New Device Login", "System detected new device login! Your session from this device will be disconnected. <br><br> If this wasn't you, or if you believe that an unauthorized person has accessed your account, please reset your password right away.");
+                if(!isAllowedMultiSession(accountid, deviceid)) SendNewLoginSessionNotification(accountid, appreference, deviceid, "session", "New Device Login", "System detected new device login! Your session from this device will be disconnected. <br><br> If this wasn't you, or if you believe that an unauthorized person has accessed your account, please reset your password right away.");
             }else{
                 mainObj.put("status", "ERROR");
                 mainObj.put("message","Server encounter error while processing your request. Please try again later");
@@ -168,24 +177,15 @@ try{
             }
 
         }catch(Exception e){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message",e.toString());
-            mainObj.put("errorcode", "400");
-            out.print(mainObj);
-            logError("app-x-login",e.getMessage());
+            out.print(error_exception(mainObj)); 
+            logError(api_file,e.getMessage());
         }
     }else{
-        mainObj.put("status", "ERROR");
-        mainObj.put("message","request not valid");
-        mainObj.put("errorcode", "404");
-        out.print(mainObj);
+        out.print(error_invalid_request(mainObj)); 
     }
 }catch (Exception e){
-      mainObj.put("status", "ERROR");
-      mainObj.put("message", "request not valid");
-      mainObj.put("errorcode", "400");
-      out.print(mainObj);
-      logError("app-x-login",e.getMessage());
+      out.print(error_invalid_request(mainObj));
+      logError(api_file,e.getMessage());
 }
 %>
 

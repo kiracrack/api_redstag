@@ -131,33 +131,6 @@
 }
 %>
 
-<%!public String AttachedImage(ServletContext application, String imageString, String filename) {
-     String PhotoUrl = "";
-    if(imageString.length() > 0) {
-        String directory = application.getRealPath((GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/media/");
-        File theDir = new File(directory);
-        if (!theDir.exists()){
-            theDir.mkdirs();
-        }
-        
-        String PhotoLocation = directory + "/" + filename;
-        PhotoUrl = GlobalHostName + (GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/media/"+filename;
-        byte[] data = DatatypeConverter.parseBase64Binary(imageString);
-        File file= new File(PhotoLocation);
-        
-        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
-            outputStream.write(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-            PhotoUrl = "";
-        }
-    }else{
-         PhotoUrl = "";
-    }
-    return PhotoUrl;
-}
-%>
-
 <%!public void DeleteImage(ServletContext application, String filename) {
     String imgfile = application.getRealPath((GlobalHostDirectory.equals("")?"":"/"+GlobalHostDirectory)+"/media/" + filename);
     File theFile = new File(imgfile);
@@ -272,19 +245,6 @@
         ExecuteQuery("insert into tblwebvisitor set ipaddress='"+ipaddress+"', " + (!accountid.isEmpty() ? " accountid='"+accountid+"', " : "") + " counts=counts+1");
     }
 }%>
-
-<%!public String getDirectIPAddress(HttpServletRequest request) {
-    for (String header : HEADERS_TO_TRY) {
-        String ip = request.getHeader(header);
-        if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
-            return ip;
-        }
-    }
-
-    return request.getRemoteAddr();
-}
-%>
-
 
 <%!public void LogActivity(String userid, String details) {
     ExecuteQuery("insert into tblactivitylogs set datetrn=current_timestamp, userid='"+userid+"',details=lcase('"+rchar(details.toString())+"')");
