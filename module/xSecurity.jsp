@@ -79,17 +79,31 @@
     public boolean valid;
     public String message;
 
-    public JwtVerification(String token, String ipAddress, String api_file){
+    public JwtVerification(String token, String ipaddress, String api_file){
+        JwtUtil jwtUtil = new JwtUtil();
         if(token == null){
             this.valid = false;
-            this.message = globalJwtTokenInvalid;
-            logError(api_file, "blank-security-token: ip "+ipAddress);
-
+            this.message = globalJwtTokenInvalid; 
+            logErrorToken(api_file, "blank_token", ipaddress, "null");
+      
         }else if (!jwtUtil.validateToken(token)) {
             this.valid = false;
-            this.message = globalJwtTokenTampered;
-            logError(api_file, "security-token-tampered: ip "+ipAddress+" ("+token+")");
+            switch(jwtUtil.error_code) {
+                case "EXPIRED":
+                    this.message = globalJwtTokenInvalid; 
+                    logErrorToken(api_file, "expire_token", ipaddress, token);
+                    break;
 
+                case "TAMPERED":
+                    this.message = globalJwtTokenInvalid; 
+                    logErrorToken(api_file, "tempered_token", ipaddress, token);
+                    break;
+
+                default:
+                    this.message = globalJwtTokenInvalid; 
+                    logErrorToken(api_file, "invalid_token", ipaddress, token);
+                    break;
+            }
         }else{
             this.valid = true;
             this.message = "";
@@ -140,6 +154,11 @@
         return false;
     }
 
+    // allow Firebase token queries
+    if (str.contains("ya29.c.c0AZ4bNp")) {
+        return false;
+    }
+
     String s = str.toLowerCase().trim();
     return s.contains("union select")
             || s.contains("sleep(")
@@ -157,8 +176,7 @@
             || s.contains("\" or \"")
             || s.contains("/*")
             || s.contains("*/")
-            || s.contains("--")
-            || s.contains("#")
+            || s.contains("--") 
             || s.contains(",null,null,null")
             || s.matches("(?is).*\\binsert\\s+into\\b.*")
             || s.matches("(?is).*\\bupdate\\s+\\w+\\s+set\\b.*")

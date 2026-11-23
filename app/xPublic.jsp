@@ -108,26 +108,6 @@ try{
         mainObj.put("appreference", appreference);
         out.print(mainObj);
 
-    }else if(x.equals("reset_password")){
-        String accountid =  request.getParameter("accountid");
-        String password =  request.getParameter("password");
-
-        if(CountQry("tblpasswordhistory", "password=AES_ENCRYPT('"+password+"', '"+globalPassKey+"') and userid='" + accountid + "'") > 0){
-            mainObj.put("status", "ERROR");
-            mainObj.put("message", "You just entered your old password. Please enter new password");
-            mainObj.put("errorcode", "100");
-            out.print(mainObj);
-            return;
-        }
-
-        ExecuteQuery("insert into tblpasswordhistory set userid='"+accountid+"', password=AES_ENCRYPT('"+password+"', '"+globalPassKey+"'),changedate=current_timestamp");
-        ExecuteQuery("update tblsubscriber set password=AES_ENCRYPT('"+rchar(password)+"', '"+globalPassKey+"'), accessattempt=0, accesslocklevel=0, accesslockexpiry=null, accesslockdescription='' where accountid='"+accountid+"'");
-
-        mainObj.put("status", "OK");
-        mainObj.put("message", "Password successfully changed! Please proceed login");
-        mainObj.put("errorcode", "100");
-        out.print(mainObj);
-    
     }else if(x.equals("reset_web_password")){
         String password =  request.getParameter("password");
         String reference = request.getParameter("reference");

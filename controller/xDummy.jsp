@@ -28,12 +28,6 @@ try{
         token = authHeader.substring(7);
     }
 
-    JwtVerification jwt = new JwtVerification(token, ipaddress, api_file);
-    if(!jwt.valid) {
-        out.print(error_token_controller(mainObj, jwt.message));
-        return;
-    }
-
     if(x.isEmpty() || deviceid.isEmpty() || sessionid.isEmpty()){
         out.print(error_invalid_request(mainObj));
         return;
@@ -44,6 +38,12 @@ try{
 
     }else if(isControllerBlocked(deviceid)){
         out.print(error_controller_blocked(mainObj));
+        return;
+    }
+
+    JwtVerification jwt = new JwtVerification(token, ipaddress, api_file);
+    if(!jwt.valid) {
+        out.print(error_token_controller(mainObj, jwt.message));
         return;
     }
 

@@ -36,7 +36,6 @@
 
 <%-- select command executor --%>
 <%!public ResultSet SelectQuery(String command) {
-
 	if (isMaliciousQuery(command)) {
 		logError("malicious-command", command);
         throw new SecurityException(
@@ -957,6 +956,21 @@
 		conn_error = class_error_conn.connect();
 		stat_error = conn_error.createStatement();
 		stat_error.executeUpdate("insert into tblerrorlogs set module='"+module+"',message='"+rchar(message.toString())+"', datetrn=current_timestamp");
+	}catch(Exception e){
+		System.out.print(e);
+	}
+ }
+ %>
+
+<%!public void logErrorToken(String module, String error_type, String ipaddress, String token) {
+    try {
+		redstag_error class_error_conn = new redstag_error();
+		class_error_conn.disconnect();
+		Statement stat_error = null;
+		Connection conn_error = null;
+		conn_error = class_error_conn.connect();
+		stat_error = conn_error.createStatement();
+		stat_error.executeUpdate("insert into tbltokenlogs set module='"+module+"',error_type='"+error_type+"', ipaddress='"+ipaddress+"', token='"+rchar(token.toString())+"', datetrn=current_timestamp");
 	}catch(Exception e){
 		System.out.print(e);
 	}
